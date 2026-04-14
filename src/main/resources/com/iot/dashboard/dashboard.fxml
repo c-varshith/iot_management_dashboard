@@ -1,0 +1,183 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.*?>
+<?import javafx.scene.chart.*?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<!--
+    dashboard.fxml — Main IoT Energy Dashboard layout
+    Controller: com.iot.dashboard.controller.DashboardController
+
+    Layout structure:
+    ┌─────────────────────── TopBar ───────────────────────┐
+    │  Title  |  Clock  |  Readings  |  [Pause] [Report] [Logout] │
+    ├──────────────────────────────────────────────────────┤
+    │  ┌────────────────┐  ┌────────────────┐              │
+    │  │  Temperature   │  │   Humidity     │  ← Charts    │
+    │  │   LineChart    │  │   LineChart    │              │
+    │  └────────────────┘  └────────────────┘              │
+    │  ┌────────────────┐  ┌────────────────┐              │
+    │  │    Voltage     │  │  Active Power  │              │
+    │  │   LineChart    │  │   LineChart    │              │
+    │  └────────────────┘  └────────────────┘              │
+    ├──────────────────────────────────────────────────────┤
+    │           Recent Readings Table                      │
+    ├──────────────────────────────────────────────────────┤
+    │  Status bar                                          │
+    └──────────────────────────────────────────────────────┘
+-->
+<BorderPane xmlns="http://javafx.com/javafx/17"
+            xmlns:fx="http://javafx.com/fxml/1"
+            fx:controller="com.iot.dashboard.controller.DashboardController"
+            styleClass="dashboard-root">
+
+    <!-- ================================================================
+         TOP BAR
+         ================================================================ -->
+    <top>
+        <HBox styleClass="topbar" alignment="CENTER_LEFT" spacing="16">
+            <Label text="⚡" styleClass="topbar-logo" />
+            <Label fx:id="titleLabel" text="IoT Smart Energy Dashboard"
+                   styleClass="topbar-title" HBox.hgrow="ALWAYS" />
+
+            <Label fx:id="clockLabel"    text="--:--:--"  styleClass="topbar-clock" />
+            <Label fx:id="readingCountLabel" text="Readings: 0" styleClass="topbar-readings" />
+
+            <Button fx:id="startStopButton"
+                    text="⏸ Pause Simulation"
+                    onAction="#handleStartStop"
+                    styleClass="btn-secondary" />
+            <Button fx:id="reportButton"
+                    text="📄 Generate Report"
+                    onAction="#handleGenerateReport"
+                    styleClass="btn-accent" />
+            <Button fx:id="logoutButton"
+                    text="⏏ Logout"
+                    onAction="#handleLogout"
+                    styleClass="btn-danger" />
+        </HBox>
+    </top>
+
+    <!-- ================================================================
+         CENTER: Charts grid (2×2) + Data table
+         ================================================================ -->
+    <center>
+        <VBox spacing="12" styleClass="dashboard-center">
+            <padding>
+                <Insets top="12" right="14" bottom="0" left="14" />
+            </padding>
+
+            <!-- ── Current value summary bar ── -->
+            <HBox spacing="10" alignment="CENTER">
+                <!-- Temperature card -->
+                <VBox styleClass="metric-card metric-temp" alignment="CENTER" HBox.hgrow="ALWAYS">
+                    <Label text="🌡 Temperature" styleClass="metric-label" />
+                    <Label fx:id="tempCurrentLabel" text="— °C" styleClass="metric-value" />
+                </VBox>
+                <!-- Humidity card -->
+                <VBox styleClass="metric-card metric-humid" alignment="CENTER" HBox.hgrow="ALWAYS">
+                    <Label text="💧 Humidity" styleClass="metric-label" />
+                    <Label fx:id="humidCurrentLabel" text="— %" styleClass="metric-value" />
+                </VBox>
+                <!-- Voltage card -->
+                <VBox styleClass="metric-card metric-volt" alignment="CENTER" HBox.hgrow="ALWAYS">
+                    <Label text="⚡ Voltage" styleClass="metric-label" />
+                    <Label fx:id="voltCurrentLabel" text="— V" styleClass="metric-value" />
+                </VBox>
+                <!-- Active Power card -->
+                <VBox styleClass="metric-card metric-power" alignment="CENTER" HBox.hgrow="ALWAYS">
+                    <Label text="🔌 Active Power" styleClass="metric-label" />
+                    <Label fx:id="powerCurrentLabel" text="— W" styleClass="metric-value" />
+                </VBox>
+            </HBox>
+
+            <!-- ── 2×2 Chart grid ── -->
+            <GridPane hgap="10" vgap="10" VBox.vgrow="ALWAYS">
+                <columnConstraints>
+                    <ColumnConstraints percentWidth="50" />
+                    <ColumnConstraints percentWidth="50" />
+                </columnConstraints>
+                <rowConstraints>
+                    <RowConstraints percentHeight="50" />
+                    <RowConstraints percentHeight="50" />
+                </rowConstraints>
+
+                <!-- Temperature Chart -->
+                <LineChart fx:id="tempChart" GridPane.columnIndex="0" GridPane.rowIndex="0"
+                           title="Temperature (°C)"
+                           styleClass="chart-temp"
+                           animated="false"
+                           createSymbols="false">
+                    <xAxis><NumberAxis label="Time (s)" /></xAxis>
+                    <yAxis><NumberAxis label="°C" /></yAxis>
+                </LineChart>
+
+                <!-- Humidity Chart -->
+                <LineChart fx:id="humidChart" GridPane.columnIndex="1" GridPane.rowIndex="0"
+                           title="Humidity (%)"
+                           styleClass="chart-humid"
+                           animated="false"
+                           createSymbols="false">
+                    <xAxis><NumberAxis label="Time (s)" /></xAxis>
+                    <yAxis><NumberAxis label="\%" /></yAxis>
+                </LineChart>
+
+                <!-- Voltage Chart -->
+                <LineChart fx:id="voltChart" GridPane.columnIndex="0" GridPane.rowIndex="1"
+                           title="Voltage (V)"
+                           styleClass="chart-volt"
+                           animated="false"
+                           createSymbols="false">
+                    <xAxis><NumberAxis label="Time (s)" /></xAxis>
+                    <yAxis><NumberAxis label="V" /></yAxis>
+                </LineChart>
+
+                <!-- Active Power Chart -->
+                <LineChart fx:id="powerChart" GridPane.columnIndex="1" GridPane.rowIndex="1"
+                           title="Active Power (W)"
+                           styleClass="chart-power"
+                           animated="false"
+                           createSymbols="false">
+                    <xAxis><NumberAxis label="Time (s)" /></xAxis>
+                    <yAxis><NumberAxis label="W" /></yAxis>
+                </LineChart>
+            </GridPane>
+
+            <!-- ── Recent Readings Data Table ── -->
+            <VBox styleClass="table-section" VBox.vgrow="NEVER">
+                <HBox alignment="CENTER_LEFT" spacing="10" styleClass="table-header-bar">
+                    <Label text="📊 Recent Readings" styleClass="section-title" HBox.hgrow="ALWAYS"/>
+                    <Button text="Clear Table" onAction="#handleClearData" styleClass="btn-subtle" />
+                </HBox>
+
+                <TableView fx:id="dataTable" maxHeight="180" styleClass="data-table">
+                    <columns>
+                        <TableColumn fx:id="colSensor"    text="Sensor"      prefWidth="150" />
+                        <TableColumn fx:id="colValue"     text="Value"       prefWidth="100" />
+                        <TableColumn fx:id="colUnit"      text="Unit"        prefWidth="80"  />
+                        <TableColumn fx:id="colTimestamp" text="Timestamp"   prefWidth="200" />
+                    </columns>
+                    <placeholder>
+                        <Label text="Waiting for simulation data..." styleClass="table-placeholder" />
+                    </placeholder>
+                </TableView>
+            </VBox>
+
+        </VBox>
+    </center>
+
+    <!-- ================================================================
+         BOTTOM STATUS BAR
+         ================================================================ -->
+    <bottom>
+        <HBox styleClass="statusbar" alignment="CENTER_LEFT" spacing="10">
+            <Label fx:id="statusLabel"
+                   text="● Initialising simulation..."
+                   styleClass="status-text"
+                   HBox.hgrow="ALWAYS" />
+            <Label text="MySQL | HikariCP | JavaFX 17" styleClass="status-right" />
+        </HBox>
+    </bottom>
+
+</BorderPane>

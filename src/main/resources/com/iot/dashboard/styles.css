@@ -1,0 +1,466 @@
+/* =============================================================
+   IoT Smart Energy Dashboard — Dark Theme CSS
+   =============================================================
+   Uses CSS variables-style root selectors for consistent theming.
+
+   Colour palette:
+     Background dark  : #0D1117
+     Panel dark       : #161B22
+     Card dark        : #1C2128
+     Border           : #30363D
+     Text primary     : #E6EDF3
+     Text secondary   : #7D8590
+     Accent cyan      : #00B4D8
+     Accent green     : #2EA043
+     Accent orange    : #F78166
+     Accent yellow    : #E3B341
+   ============================================================= */
+
+/* ─── GLOBAL ROOT ─────────────────────────────────────────── */
+.root {
+    -fx-font-family: "Segoe UI", "Helvetica Neue", Arial, sans-serif;
+    -fx-font-size: 13px;
+    -fx-background-color: #0D1117;
+    -fx-text-fill: #E6EDF3;
+}
+
+/* ─── LOGIN SCREEN ────────────────────────────────────────── */
+.login-root {
+    -fx-background-color: linear-gradient(to bottom right, #0D1117, #1C2128, #0D1117);
+}
+
+.login-background {
+    -fx-background-color: transparent;
+}
+
+.login-card {
+    -fx-background-color: #161B22;
+    -fx-background-radius: 16;
+    -fx-border-color: #30363D;
+    -fx-border-width: 1;
+    -fx-border-radius: 16;
+    -fx-effect: dropshadow(gaussian, rgba(0,180,216,0.18), 30, 0, 0, 8);
+    -fx-min-width: 400;
+}
+
+.login-brand-stripe {
+    -fx-background-color: linear-gradient(to right, #00B4D8, #0077B6);
+    -fx-background-radius: 14 14 0 0;
+    -fx-padding: 16 24;
+    -fx-spacing: 10;
+    -fx-alignment: CENTER_LEFT;
+}
+
+.login-logo {
+    -fx-font-size: 26px;
+    -fx-text-fill: white;
+}
+
+.login-brand-title {
+    -fx-font-size: 17px;
+    -fx-font-weight: bold;
+    -fx-text-fill: white;
+}
+
+.login-form-area {
+    -fx-padding: 24 30 16 30;
+}
+
+.login-subtitle {
+    -fx-font-size: 15px;
+    -fx-font-weight: bold;
+    -fx-text-fill: #E6EDF3;
+    -fx-padding: 0 0 4 0;
+}
+
+.field-label {
+    -fx-font-size: 11px;
+    -fx-text-fill: #7D8590;
+    -fx-font-weight: bold;
+    letter-spacing: 1px;
+}
+
+.login-field {
+    -fx-background-color: #0D1117;
+    -fx-border-color: #30363D;
+    -fx-border-width: 1;
+    -fx-border-radius: 8;
+    -fx-background-radius: 8;
+    -fx-text-fill: #E6EDF3;
+    -fx-prompt-text-fill: #484F58;
+    -fx-padding: 10 12;
+    -fx-font-size: 13px;
+}
+
+.login-field:focused {
+    -fx-border-color: #00B4D8;
+    -fx-border-width: 1.5;
+    -fx-effect: dropshadow(gaussian, rgba(0,180,216,0.25), 8, 0, 0, 0);
+}
+
+.login-btn {
+    -fx-background-color: #00B4D8;
+    -fx-text-fill: #0D1117;
+    -fx-font-weight: bold;
+    -fx-font-size: 13px;
+    -fx-background-radius: 8;
+    -fx-border-radius: 8;
+    -fx-padding: 12 0;
+    -fx-cursor: hand;
+    letter-spacing: 2px;
+}
+
+.login-btn:hover {
+    -fx-background-color: #48CAE4;
+    -fx-effect: dropshadow(gaussian, rgba(0,180,216,0.4), 10, 0, 0, 2);
+}
+
+.login-btn:pressed {
+    -fx-background-color: #0096C7;
+}
+
+.exit-btn {
+    -fx-background-color: transparent;
+    -fx-border-color: #30363D;
+    -fx-border-radius: 6;
+    -fx-background-radius: 6;
+    -fx-text-fill: #7D8590;
+    -fx-font-size: 11px;
+    -fx-padding: 5 12;
+    -fx-cursor: hand;
+}
+
+.exit-btn:hover {
+    -fx-border-color: #F78166;
+    -fx-text-fill: #F78166;
+}
+
+.error-label {
+    -fx-background-color: rgba(247,129,102,0.12);
+    -fx-border-color: #F78166;
+    -fx-border-width: 1;
+    -fx-border-radius: 6;
+    -fx-background-radius: 6;
+    -fx-text-fill: #F78166;
+    -fx-font-size: 11px;
+    -fx-padding: 7 10;
+}
+
+.login-footer {
+    -fx-border-top-color: #21262D;
+    -fx-border-width: 1 0 0 0;
+    -fx-padding: 10 16;
+}
+
+.login-spinner .progress-indicator-determinate-indicator,
+.login-spinner .progress-indicator-indeterminate-indicator {
+    -fx-progress-color: #00B4D8;
+}
+
+.status-label {
+    -fx-text-fill: #00B4D8;
+    -fx-font-size: 11px;
+}
+
+/* ─── DASHBOARD ROOT ──────────────────────────────────────── */
+.dashboard-root {
+    -fx-background-color: #0D1117;
+}
+
+/* ─── TOP BAR ─────────────────────────────────────────────── */
+.topbar {
+    -fx-background-color: #161B22;
+    -fx-border-color: transparent transparent #21262D transparent;
+    -fx-border-width: 0 0 1 0;
+    -fx-padding: 12 18;
+    -fx-alignment: CENTER_LEFT;
+}
+
+.topbar-logo {
+    -fx-font-size: 24px;
+}
+
+.topbar-title {
+    -fx-font-size: 17px;
+    -fx-font-weight: bold;
+    -fx-text-fill: #E6EDF3;
+}
+
+.topbar-clock {
+    -fx-font-family: "Courier New", monospace;
+    -fx-font-size: 13px;
+    -fx-text-fill: #00B4D8;
+    -fx-background-color: #0D1117;
+    -fx-padding: 5 10;
+    -fx-background-radius: 6;
+}
+
+.topbar-readings {
+    -fx-font-size: 12px;
+    -fx-text-fill: #2EA043;
+    -fx-background-color: rgba(46,160,67,0.12);
+    -fx-padding: 5 10;
+    -fx-background-radius: 6;
+}
+
+/* ─── BUTTONS ─────────────────────────────────────────────── */
+.btn-secondary {
+    -fx-background-color: #21262D;
+    -fx-text-fill: #E6EDF3;
+    -fx-border-color: #30363D;
+    -fx-border-width: 1;
+    -fx-border-radius: 8;
+    -fx-background-radius: 8;
+    -fx-padding: 7 14;
+    -fx-cursor: hand;
+    -fx-font-size: 12px;
+}
+.btn-secondary:hover {
+    -fx-background-color: #2D333B;
+    -fx-border-color: #00B4D8;
+}
+
+.btn-accent {
+    -fx-background-color: #00B4D8;
+    -fx-text-fill: #0D1117;
+    -fx-font-weight: bold;
+    -fx-border-radius: 8;
+    -fx-background-radius: 8;
+    -fx-padding: 7 14;
+    -fx-cursor: hand;
+    -fx-font-size: 12px;
+}
+.btn-accent:hover {
+    -fx-background-color: #48CAE4;
+}
+
+.btn-danger {
+    -fx-background-color: transparent;
+    -fx-text-fill: #F78166;
+    -fx-border-color: #F78166;
+    -fx-border-width: 1;
+    -fx-border-radius: 8;
+    -fx-background-radius: 8;
+    -fx-padding: 7 14;
+    -fx-cursor: hand;
+    -fx-font-size: 12px;
+}
+.btn-danger:hover {
+    -fx-background-color: rgba(247,129,102,0.12);
+}
+
+.btn-subtle {
+    -fx-background-color: transparent;
+    -fx-text-fill: #7D8590;
+    -fx-border-color: #30363D;
+    -fx-border-width: 1;
+    -fx-border-radius: 6;
+    -fx-background-radius: 6;
+    -fx-padding: 4 10;
+    -fx-cursor: hand;
+    -fx-font-size: 11px;
+}
+.btn-subtle:hover {
+    -fx-text-fill: #E6EDF3;
+    -fx-border-color: #7D8590;
+}
+
+/* ─── METRIC SUMMARY CARDS ────────────────────────────────── */
+.metric-card {
+    -fx-background-color: #161B22;
+    -fx-background-radius: 10;
+    -fx-border-color: #21262D;
+    -fx-border-width: 1;
+    -fx-border-radius: 10;
+    -fx-padding: 10 12;
+    -fx-min-height: 72;
+}
+
+.metric-label {
+    -fx-font-size: 11px;
+    -fx-font-weight: bold;
+    -fx-text-fill: #7D8590;
+}
+
+.metric-value {
+    -fx-font-family: "Courier New", monospace;
+    -fx-font-size: 20px;
+    -fx-font-weight: bold;
+}
+
+.metric-temp  .metric-value { -fx-text-fill: #F78166; }
+.metric-humid .metric-value { -fx-text-fill: #00B4D8; }
+.metric-volt  .metric-value { -fx-text-fill: #E3B341; }
+.metric-power .metric-value { -fx-text-fill: #2EA043; }
+
+.metric-temp  { -fx-border-color: rgba(247,129,102,0.3); }
+.metric-humid { -fx-border-color: rgba(0,180,216,0.3); }
+.metric-volt  { -fx-border-color: rgba(227,179,65,0.3); }
+.metric-power { -fx-border-color: rgba(46,160,67,0.3); }
+
+/* ─── LINE CHARTS ─────────────────────────────────────────── */
+.chart {
+    -fx-background-color: #161B22;
+    -fx-background-radius: 10;
+    -fx-border-color: #21262D;
+    -fx-border-width: 1;
+    -fx-border-radius: 10;
+    -fx-padding: 8;
+}
+
+.chart-plot-background {
+    -fx-background-color: #0D1117;
+    -fx-background-radius: 6;
+}
+
+.chart-title {
+    -fx-font-size: 12px;
+    -fx-font-weight: bold;
+    -fx-text-fill: #7D8590;
+}
+
+.axis-label {
+    -fx-font-size: 10px;
+    -fx-text-fill: #484F58;
+}
+
+.axis {
+    -fx-tick-label-fill: #484F58;
+    -fx-tick-length: 4;
+    -fx-minor-tick-length: 2;
+}
+
+.chart-horizontal-grid-lines {
+    -fx-stroke: #21262D;
+    -fx-stroke-dash-array: 4 4;
+}
+
+.chart-vertical-grid-lines {
+    -fx-stroke: #21262D;
+    -fx-stroke-dash-array: 4 4;
+}
+
+.chart-series-line {
+    -fx-stroke-width: 2px;
+    -fx-effect: null;
+}
+
+/* Per-chart series line colours */
+.chart-temp .chart-series-line   { -fx-stroke: #F78166; }
+.chart-humid .chart-series-line  { -fx-stroke: #00B4D8; }
+.chart-volt .chart-series-line   { -fx-stroke: #E3B341; }
+.chart-power .chart-series-line  { -fx-stroke: #2EA043; }
+
+/* ─── DASHBOARD CENTER ────────────────────────────────────── */
+.dashboard-center {
+    -fx-background-color: #0D1117;
+}
+
+/* ─── TABLE SECTION ───────────────────────────────────────── */
+.table-section {
+    -fx-background-color: #161B22;
+    -fx-background-radius: 10;
+    -fx-border-color: #21262D;
+    -fx-border-width: 1;
+    -fx-border-radius: 10;
+    -fx-padding: 0;
+    -fx-spacing: 0;
+}
+
+.table-header-bar {
+    -fx-padding: 8 12;
+    -fx-border-color: transparent transparent #21262D transparent;
+    -fx-border-width: 0 0 1 0;
+}
+
+.section-title {
+    -fx-font-size: 13px;
+    -fx-font-weight: bold;
+    -fx-text-fill: #7D8590;
+}
+
+.data-table {
+    -fx-background-color: transparent;
+    -fx-border-color: transparent;
+    -fx-table-cell-border-color: transparent;
+}
+
+.data-table .column-header-background {
+    -fx-background-color: #0D1117;
+}
+
+.data-table .column-header {
+    -fx-background-color: transparent;
+    -fx-border-color: transparent transparent #21262D transparent;
+    -fx-border-width: 0 0 1 0;
+    -fx-size: 32;
+}
+
+.data-table .column-header .label {
+    -fx-text-fill: #00B4D8;
+    -fx-font-size: 11px;
+    -fx-font-weight: bold;
+}
+
+.data-table .table-row-cell {
+    -fx-background-color: transparent;
+    -fx-border-color: transparent transparent #21262D transparent;
+    -fx-border-width: 0 0 1 0;
+    -fx-cell-size: 28px;
+}
+
+.data-table .table-row-cell:selected {
+    -fx-background-color: rgba(0,180,216,0.12);
+}
+
+.data-table .table-row-cell:hover {
+    -fx-background-color: rgba(255,255,255,0.03);
+}
+
+.data-table .table-cell {
+    -fx-text-fill: #C9D1D9;
+    -fx-font-size: 12px;
+    -fx-padding: 4 8;
+    -fx-border-color: transparent;
+}
+
+.table-placeholder {
+    -fx-text-fill: #484F58;
+    -fx-font-size: 12px;
+}
+
+/* ─── STATUS BAR ──────────────────────────────────────────── */
+.statusbar {
+    -fx-background-color: #161B22;
+    -fx-border-color: #21262D transparent transparent transparent;
+    -fx-border-width: 1 0 0 0;
+    -fx-padding: 6 16;
+}
+
+.status-text {
+    -fx-text-fill: #2EA043;
+    -fx-font-size: 11px;
+}
+
+.status-right {
+    -fx-text-fill: #30363D;
+    -fx-font-size: 10px;
+}
+
+/* ─── SCROLL BAR (minimal dark style) ────────────────────── */
+.scroll-bar:vertical .thumb,
+.scroll-bar:horizontal .thumb {
+    -fx-background-color: #30363D;
+    -fx-background-radius: 4;
+}
+
+.scroll-bar:vertical .track,
+.scroll-bar:horizontal .track {
+    -fx-background-color: #161B22;
+}
+
+.scroll-bar .increment-button,
+.scroll-bar .decrement-button {
+    -fx-background-color: transparent;
+    -fx-padding: 0;
+}

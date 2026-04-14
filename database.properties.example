@@ -1,0 +1,25 @@
+# ============================================================
+# IoT Dashboard — Database Configuration Template
+#
+# SETUP INSTRUCTIONS:
+#   1. Copy this file:  cp database.properties.example database.properties
+#   2. Fill in your MySQL credentials below
+#   3. database.properties is git-ignored — your password stays local
+# ============================================================
+
+# JDBC URL — change host/port/dbname if not using defaults
+db.url=jdbc:mysql://localhost:3306/iot_dashboard?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC&rewriteBatchedStatements=true
+
+# MySQL credentials — use a dedicated user, NOT root, in production
+db.username=YOUR_MYSQL_USERNAME
+db.password=YOUR_MYSQL_PASSWORD
+
+# ============================================================
+# HikariCP Connection Pool (safe defaults — tune for production)
+# ============================================================
+hikari.maximumPoolSize=10
+hikari.minimumIdle=2
+hikari.connectionTimeout=30000
+hikari.idleTimeout=600000
+hikari.maxLifetime=1800000
+hikari.poolName=IoTDashboard-HikariPool

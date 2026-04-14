@@ -1,0 +1,31 @@
+# ============================================================
+# IoT Dashboard — .gitignore
+# ============================================================
+
+# ─── SECRETS — NEVER COMMIT THESE ───────────────────────────
+src/main/resources/database.properties
+
+# ─── Maven build output ──────────────────────────────────────
+target/
+*.class
+*.jar
+
+# ─── IDE files ───────────────────────────────────────────────
+.idea/
+*.iml
+.vscode/
+*.eclipse
+.classpath
+.project
+.settings/
+
+# ─── OS files ────────────────────────────────────────────────
+.DS_Store
+Thumbs.db
+
+# ─── Logs ────────────────────────────────────────────────────
+*.log
+logs/
+
+# ─── Generated PDF reports ───────────────────────────────────
+*.pdf

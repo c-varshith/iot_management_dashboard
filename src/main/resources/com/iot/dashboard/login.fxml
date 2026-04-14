@@ -1,0 +1,88 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.*?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.scene.text.*?>
+
+<!--
+    login.fxml — Login screen layout
+    Controller: com.iot.dashboard.controller.LoginController
+-->
+<StackPane xmlns="http://javafx.com/javafx/17"
+           xmlns:fx="http://javafx.com/fxml/1"
+           fx:controller="com.iot.dashboard.controller.LoginController"
+           styleClass="login-root">
+
+    <!-- Background gradient layer -->
+    <VBox alignment="CENTER" styleClass="login-background" />
+
+    <!-- Login card -->
+    <VBox fx:id="loginCard"
+          alignment="CENTER"
+          spacing="0"
+          maxWidth="420"
+          maxHeight="460"
+          styleClass="login-card">
+
+        <!-- Top brand stripe -->
+        <HBox alignment="CENTER" styleClass="login-brand-stripe">
+            <Label text="⚡" styleClass="login-logo" />
+            <Label text="IoT Energy Dashboard" styleClass="login-brand-title" />
+        </HBox>
+
+        <!-- Form area -->
+        <VBox spacing="16" styleClass="login-form-area">
+
+            <Label text="Administrator Login"
+                   styleClass="login-subtitle" />
+
+            <!-- Username field -->
+            <VBox spacing="4">
+                <Label text="Username" styleClass="field-label" />
+                <TextField fx:id="usernameField"
+                           promptText="Enter username"
+                           styleClass="login-field"
+                           onAction="#handleLogin" />
+            </VBox>
+
+            <!-- Password field -->
+            <VBox spacing="4">
+                <Label text="Password" styleClass="field-label" />
+                <PasswordField fx:id="passwordField"
+                               promptText="Enter password"
+                               styleClass="login-field"
+                               onAction="#handleLogin" />
+            </VBox>
+
+            <!-- Error label -->
+            <Label fx:id="errorLabel"
+                   text=""
+                   styleClass="error-label"
+                   wrapText="true"
+                   visible="false" />
+
+            <!-- Loading spinner + status -->
+            <HBox alignment="CENTER" spacing="8">
+                <ProgressIndicator fx:id="loadingSpinner"
+                                   maxWidth="20" maxHeight="20"
+                                   styleClass="login-spinner" />
+                <Label fx:id="statusLabel" text="" styleClass="status-label" />
+            </HBox>
+
+            <!-- Login button -->
+            <Button fx:id="loginButton"
+                    text="LOGIN"
+                    onAction="#handleLogin"
+                    maxWidth="Infinity"
+                    styleClass="login-btn" />
+
+        </VBox>
+
+        <!-- Footer -->
+        <HBox alignment="CENTER_RIGHT" styleClass="login-footer">
+            <Button text="Exit" onAction="#handleExit" styleClass="exit-btn" />
+        </HBox>
+    </VBox>
+
+</StackPane>
