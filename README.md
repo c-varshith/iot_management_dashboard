@@ -34,7 +34,7 @@ Live LineCharts scroll at 1 Hz with a 60-point sliding window. All readings pers
 ### 1 — Clone the repo
 
 ```bash
-git clone https://github.com/YOUR_USERNAME/iot-dashboard.git
+git clone https://github.com/c-varshith/iot_management_dashboard.git
 cd iot-dashboard
 ```
 
@@ -133,7 +133,7 @@ Host: YOUR_VM_IP:5901
 ### Clone and run on the VM
 
 ```bash
-git clone https://github.com/YOUR_USERNAME/iot-dashboard.git
+git clone https://github.com/c-varshith/iot_management_dashboard.git
 cd iot-dashboard
 cp database.properties.example src/main/resources/database.properties
 
