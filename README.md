@@ -1,4 +1,4 @@
-# ⚡ IoT Smart Energy Management Dashboard
+# IoT Smart Energy Management Dashboard
 
 A real-time desktop application that monitors IoT sensor data — either from a **physical Arduino sensor** (temperature + humidity via USB serial) or from a built-in **Gaussian simulation engine**. Voltage and Active Power are always simulated.
 
