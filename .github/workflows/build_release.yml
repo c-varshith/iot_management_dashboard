@@ -78,33 +78,43 @@ EOF
       - name: Package Windows exe
         shell: pwsh
         run: |
+          $version = "${{ github.ref_name }}".TrimStart('v')
           $jarPath = Get-ChildItem target -Filter *-shaded.jar | Select-Object -First 1
           if (-not $jarPath) {
             throw "Shaded jar not found in target directory."
           }
 
-          New-Item -ItemType Directory -Force -Path dist | Out-Null
+          $candle = Get-ChildItem "C:\Program Files (x86)","C:\Program Files" -Recurse -Filter candle.exe |
+            Select-Object -First 1
+          if (-not $candle) {
+            throw "WiX Toolset binaries not found after installation."
+          }
+          $wixBin = Split-Path $candle.FullName
+          $env:PATH = "$wixBin;$env:PATH"
+
+          New-Item -ItemType Directory -Force -Path dist\raw | Out-Null
           $jpackageArgs = @(
             '--input', 'target',
             '--name', 'iot-dashboard',
             '--main-jar', $jarPath.Name,
             '--type', 'exe',
-            '--dest', 'dist'
+            '--dest', 'dist\raw'
           )
           & jpackage @jpackageArgs
 
-          $exe = Get-ChildItem dist -Filter *.exe | Select-Object -First 1
+          $exe = Get-ChildItem dist\raw -Filter *.exe | Select-Object -First 1
           if (-not $exe) {
             throw "Windows exe was not created."
           }
 
-          Copy-Item $exe.FullName dist\iot-dashboard-windows.exe -Force
+          Move-Item $exe.FullName "dist\iot-dashboard-$version.exe" -Force
+          Remove-Item dist\raw -Recurse -Force
 
       - name: Upload Windows artifact
         uses: actions/upload-artifact@v4
         with:
           name: windows-package
-          path: dist/iot-dashboard-windows.exe
+          path: dist/*.exe
 
   release:
     needs:
@@ -132,6 +142,6 @@ EOF
           name: ${{ github.ref_name }}
           files: |
             release-assets/iot-dashboard-linux.zip
-            release-assets/iot-dashboard-windows.exe
+            release-assets/*.exe
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
