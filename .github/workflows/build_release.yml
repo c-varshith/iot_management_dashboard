@@ -41,7 +41,7 @@ jobs:
       - name: Package app image
         run: |
           JAR_NAME=$(find target -maxdepth 1 -name '*-shaded.jar' -printf '%f\n' | head -n1)
-          JAVAFX_LIB=$(echo javafx/javafx-sdk-*/lib)
+          JAVAFX_LIB=$(find javafx -type d -path '*/lib' | head -n1)
           mkdir -p dist
           jpackage \
             --input target \
@@ -107,15 +107,18 @@ jobs:
         shell: pwsh
         run: |
           $jar = (Get-ChildItem target\*-shaded.jar | Select-Object -First 1).Name
+          $javafxLib = (Get-ChildItem javafx -Recurse -Directory | Where-Object { $_.Name -eq 'lib' } | Select-Object -First 1).FullName
           New-Item -ItemType Directory -Force -Path dist | Out-Null
-          jpackage `
-            --input target `
-            --name iot-dashboard `
-            --main-jar $jar `
-            --type app-image `
-            --dest dist `
-            --module-path javafx\lib `
-            --add-modules javafx.controls,javafx.fxml
+          $jpackageArgs = @(
+            '--input', 'target',
+            '--name', 'iot-dashboard',
+            '--main-jar', $jar,
+            '--type', 'app-image',
+            '--dest', 'dist',
+            '--module-path', $javafxLib,
+            '--add-modules', 'javafx.controls,javafx.fxml'
+          )
+          & jpackage @jpackageArgs
 
       - name: Zip Windows app image
         shell: pwsh
