@@ -3,16 +3,14 @@ package com.iot.dashboard.database;
 import com.iot.dashboard.model.AdminUser;
 import com.iot.dashboard.model.SensorData;
 import com.iot.dashboard.model.SensorType;
+import com.iot.dashboard.util.ConfigManager;
 import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
 
-import java.io.IOException;
-import java.io.InputStream;
 import java.sql.*;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Properties;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -41,17 +39,13 @@ public class DatabaseManager {
     private static final Logger LOGGER = Logger.getLogger(DatabaseManager.class.getName());
 
     private static volatile DatabaseManager instance;
-    private HikariDataSource dataSource;
+    private volatile HikariDataSource dataSource;
 
     // =====================================================================
     // Singleton
     // =====================================================================
     private DatabaseManager() {
-        try {
-            initializeDataSource();
-        } catch (IOException e) {
-            throw new RuntimeException("Failed to load database.properties", e);
-        }
+        initializeDataSource();
     }
 
     public static DatabaseManager getInstance() {
@@ -68,42 +62,72 @@ public class DatabaseManager {
     // =====================================================================
     // HikariCP Initialisation
     // =====================================================================
-    private void initializeDataSource() throws IOException {
-        Properties props = new Properties();
-        try (InputStream is = getClass().getClassLoader()
-                .getResourceAsStream("database.properties")) {
-            if (is == null) throw new IOException("database.properties not found on classpath");
-            props.load(is);
-        }
+    private void initializeDataSource() {
+        this.dataSource = createDataSource(ConfigManager.getInstance());
+        LOGGER.info("HikariCP pool initialised: " + dataSource.getPoolName());
+    }
 
-        HikariConfig config = new HikariConfig();
-        config.setJdbcUrl       (props.getProperty("db.url"));
-        config.setUsername      (props.getProperty("db.username"));
-        config.setPassword      (props.getProperty("db.password"));
-        config.setMaximumPoolSize(Integer.parseInt(props.getProperty("hikari.maximumPoolSize","10")));
-        config.setMinimumIdle   (Integer.parseInt(props.getProperty("hikari.minimumIdle",   "2")));
-        config.setConnectionTimeout (Long.parseLong(props.getProperty("hikari.connectionTimeout","30000")));
-        config.setIdleTimeout       (Long.parseLong(props.getProperty("hikari.idleTimeout", "600000")));
-        config.setMaxLifetime       (Long.parseLong(props.getProperty("hikari.maxLifetime", "1800000")));
-        config.setPoolName          (props.getProperty("hikari.poolName","IoTDashboard-HikariPool"));
+    private HikariDataSource createDataSource(ConfigManager config) {
+        HikariConfig hikariConfig = new HikariConfig();
+        hikariConfig.setJdbcUrl       (config.getDatabaseUrl());
+        hikariConfig.setUsername      (config.getDatabaseUsername());
+        hikariConfig.setPassword      (config.getDatabasePassword());
+        hikariConfig.setMaximumPoolSize(config.getHikariMaxPoolSize());
+        hikariConfig.setMinimumIdle   (config.getHikariMinIdle());
+        hikariConfig.setConnectionTimeout (30000L);
+        hikariConfig.setIdleTimeout       (600000L);
+        hikariConfig.setMaxLifetime       (1800000L);
+        hikariConfig.setPoolName          ("IoTDashboard-HikariPool");
 
-        config.addDataSourceProperty("cachePrepStmts",          "true");
-        config.addDataSourceProperty("prepStmtCacheSize",        "250");
-        config.addDataSourceProperty("prepStmtCacheSqlLimit",    "2048");
-        config.addDataSourceProperty("useServerPrepStmts",       "true");
-        config.addDataSourceProperty("useLocalSessionState",     "true");
-        config.addDataSourceProperty("rewriteBatchedStatements", "true");
-        config.addDataSourceProperty("cacheResultSetMetadata",   "true");
-        config.addDataSourceProperty("cacheServerConfiguration", "true");
-        config.addDataSourceProperty("elideSetAutoCommits",      "true");
-        config.addDataSourceProperty("maintainTimeStats",        "false");
+        hikariConfig.addDataSourceProperty("cachePrepStmts",          "true");
+        hikariConfig.addDataSourceProperty("prepStmtCacheSize",        "250");
+        hikariConfig.addDataSourceProperty("prepStmtCacheSqlLimit",    "2048");
+        hikariConfig.addDataSourceProperty("useServerPrepStmts",       "true");
+        hikariConfig.addDataSourceProperty("useLocalSessionState",     "true");
+        hikariConfig.addDataSourceProperty("rewriteBatchedStatements", "true");
+        hikariConfig.addDataSourceProperty("cacheResultSetMetadata",   "true");
+        hikariConfig.addDataSourceProperty("cacheServerConfiguration", "true");
+        hikariConfig.addDataSourceProperty("elideSetAutoCommits",      "true");
+        hikariConfig.addDataSourceProperty("maintainTimeStats",        "false");
 
-        this.dataSource = new HikariDataSource(config);
-        LOGGER.info("HikariCP pool initialised: " + config.getPoolName());
+        return new HikariDataSource(hikariConfig);
     }
 
     public Connection getConnection() throws SQLException {
         return dataSource.getConnection();
+    }
+
+    /**
+     * Rebuilds the HikariCP pool from the current ConfigManager values.
+     *
+     * The new pool is created and smoke-tested before the old pool is closed,
+     * so a bad password or URL does not break the currently running instance.
+     */
+    public synchronized void refreshDataSource() {
+        HikariDataSource previous = this.dataSource;
+        HikariDataSource replacement = null;
+
+        try {
+            replacement = createDataSource(ConfigManager.getInstance());
+
+            try (Connection ignored = replacement.getConnection()) {
+                // Smoke test successful: swap in the new pool.
+            }
+
+            this.dataSource = replacement;
+            LOGGER.info("HikariCP pool refreshed successfully.");
+
+        } catch (Exception e) {
+            if (replacement != null) {
+                replacement.close();
+            }
+            throw new IllegalStateException(
+                    "Failed to reconfigure database connection pool: " + e.getMessage(), e);
+        } finally {
+            if (previous != null && previous != this.dataSource) {
+                previous.close();
+            }
+        }
     }
 
     // =====================================================================

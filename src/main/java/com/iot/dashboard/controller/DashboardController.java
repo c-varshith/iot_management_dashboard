@@ -8,18 +8,24 @@ import com.iot.dashboard.report.ReportGenerator;
 import com.iot.dashboard.simulation.RealSensorReader;
 import com.iot.dashboard.simulation.SensorSimulator;
 import com.iot.dashboard.util.AlertUtil;
+import com.iot.dashboard.util.ConfigManager;
 import javafx.application.Platform;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
+import javafx.fxml.FXMLLoader;
 import javafx.fxml.Initializable;
+import javafx.scene.Parent;
+import javafx.scene.Scene;
 import javafx.scene.chart.LineChart;
 import javafx.scene.chart.NumberAxis;
 import javafx.scene.chart.XYChart;
 import javafx.scene.control.*;
 import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.stage.FileChooser;
+import javafx.stage.Modality;
+import javafx.stage.Stage;
 
 import java.io.File;
 import java.net.URL;
@@ -43,14 +49,15 @@ import java.util.logging.Logger;
  * DashboardController — central MVC controller.
  *
  * ─────────────────────────────────────────────────────────────────────────────
- * REAL SENSOR CONFIGURATION  ←  edit these two constants to enable your sensor
+ * CONFIGURATION  ←  Now managed via Settings UI and ConfigManager
  * ─────────────────────────────────────────────────────────────────────────────
  *
- *   USE_REAL_SENSOR  — set true to enable real temperature/humidity sensor.
- *   SERIAL_PORT      — COM port or tty device the Arduino is connected to.
- *   BAUD_RATE        — must match Serial.begin(rate) in the Arduino sketch.
+ * Users can configure:
+ *   • Database credentials (URL, username, password)
+ *   • Sensor mode (real sensor vs simulation)
+ *   • Serial port and baud rate
  *
- * ─────────────────────────────────────────────────────────────────────────────
+ * Settings are saved to ~/.iot-dashboard/config.properties
  *
  * CRUD operations exposed via this controller:
  *   CREATE — sensor readings inserted on every tick (insertSensorData)
@@ -61,13 +68,6 @@ import java.util.logging.Logger;
 public class DashboardController implements Initializable {
 
     private static final Logger LOGGER = Logger.getLogger(DashboardController.class.getName());
-
-    // =========================================================================
-    // ★  REAL SENSOR CONFIGURATION — edit here
-    // =========================================================================
-    private static final boolean USE_REAL_SENSOR = false;
-    private static final String  SERIAL_PORT     = "/dev/ttyUSB0";
-    private static final int     BAUD_RATE       = 9600;
 
     // =========================================================================
     // Constants
@@ -84,7 +84,9 @@ public class DashboardController implements Initializable {
     @FXML private Label   alertCountLabel;      // NEW — shows active alert count
     @FXML private Button  startStopButton;
     @FXML private Button  reportButton;
+    @FXML private Button  settingsButton;
     @FXML private Button  logoutButton;
+    @FXML private ToggleButton modeToggleButton;
 
     @FXML private LineChart<Number, Number> tempChart;
     @FXML private LineChart<Number, Number> humidChart;
@@ -97,6 +99,7 @@ public class DashboardController implements Initializable {
     @FXML private Label powerCurrentLabel;
 
     @FXML private Label statusLabel;
+    @FXML private Label modeStatusLabel;
 
     @FXML private TableView<SensorData>               dataTable;
     @FXML private TableColumn<SensorData, String>     colSensor;
@@ -137,21 +140,27 @@ public class DashboardController implements Initializable {
     // Source startup
     // =========================================================================
     private void startAllSources() {
-        if (USE_REAL_SENSOR) startWithRealSensor();
-        else                  startFullSimulation();
+        ConfigManager config = ConfigManager.getInstance();
+        syncModeControls(config.isUseRealSensor());
+        if (config.isUseRealSensor()) startWithRealSensor();
+        else                           startFullSimulation();
     }
 
     private void startFullSimulation() {
         simulator = new SensorSimulator(this::onSensorDataReceived);
         simulator.start();
         simulationRunning = true;
-        startStopButton.setText("⏸ Pause Simulation");
+        startStopButton.setText("⏸ Pause Sensors");
         updateStatus("Simulation running — all four sensors are simulated.");
     }
 
     private void startWithRealSensor() {
-        LOGGER.info("Starting in REAL SENSOR mode. Port: " + SERIAL_PORT);
-        realSensorReader = new RealSensorReader(SERIAL_PORT, BAUD_RATE, this::onSensorDataReceived);
+        ConfigManager config = ConfigManager.getInstance();
+        String serialPort = config.getSerialPort();
+        int baudRate = config.getBaudRate();
+
+        LOGGER.info("Starting in REAL SENSOR mode. Port: " + serialPort + " @ " + baudRate + " baud");
+        realSensorReader = new RealSensorReader(serialPort, baudRate, this::onSensorDataReceived);
         realSensorReader.start();
 
         simulator = new SensorSimulator(
@@ -161,8 +170,8 @@ public class DashboardController implements Initializable {
         simulator.start();
 
         simulationRunning = true;
-        startStopButton.setText("⏸ Pause");
-        updateStatus("Real sensor active on " + SERIAL_PORT + ".");
+        startStopButton.setText("⏸ Pause Sensors");
+        updateStatus("Real sensor active on " + serialPort + ".");
     }
 
     // =========================================================================
@@ -266,6 +275,28 @@ public class DashboardController implements Initializable {
         currentValueLabelMap.put(SensorType.ACTIVE_POWER, powerCurrentLabel);
     }
 
+    private void syncModeControls(boolean useRealSensor) {
+        if (modeToggleButton != null) {
+            modeToggleButton.setSelected(useRealSensor);
+            modeToggleButton.setText(useRealSensor ? "Real Sensor" : "Simulation");
+        }
+        if (modeStatusLabel != null) {
+            modeStatusLabel.setText(useRealSensor
+                    ? "Mode: real sensor + simulation fallback"
+                    : "Mode: full simulation");
+        }
+    }
+
+    private void stopCurrentSources() {
+        if (simulator != null && simulator.isRunning()) {
+            simulator.stop();
+        }
+        if (realSensorReader != null && realSensorReader.isRunning()) {
+            realSensorReader.stop();
+        }
+        simulationRunning = false;
+    }
+
     // =========================================================================
     // Data reception
     // =========================================================================
@@ -318,18 +349,119 @@ public class DashboardController implements Initializable {
     @FXML
     private void handleStartStop(ActionEvent event) {
         if (simulationRunning) {
-            if (simulator        != null) simulator.stop();
-            if (realSensorReader != null) realSensorReader.stop();
-            simulationRunning = false;
+            stopCurrentSources();
             startStopButton.setText("▶ Resume");
-            updateStatus(USE_REAL_SENSOR
+            ConfigManager config = ConfigManager.getInstance();
+            updateStatus(config.isUseRealSensor()
                     ? "Paused — real sensor and simulation stopped."
                     : "Simulation paused.");
         } else {
             startAllSources();
-            updateStatus(USE_REAL_SENSOR
-                    ? "Resumed — real sensor active on " + SERIAL_PORT + "."
+            ConfigManager config = ConfigManager.getInstance();
+            updateStatus(config.isUseRealSensor()
+                    ? "Resumed — real sensor active on " + config.getSerialPort() + "."
                     : "Simulation resumed.");
+        }
+    }
+
+    @FXML
+    private void handleModeToggle(ActionEvent event) {
+        boolean useRealSensor = modeToggleButton.isSelected();
+        ConfigManager config = ConfigManager.getInstance();
+        boolean wasRunning = simulationRunning;
+        java.util.Properties snapshot = config.snapshot();
+
+        try {
+            config.setUseRealSensor(useRealSensor);
+            config.saveConfig();
+
+            if (wasRunning || realSensorReader != null || simulator != null) {
+                restartConnections(wasRunning);
+            } else {
+                syncModeControls(useRealSensor);
+            }
+
+            updateStatus(useRealSensor
+                    ? "Real sensor mode enabled."
+                    : "Simulation mode enabled.");
+
+        } catch (Exception e) {
+            config.restore(snapshot);
+            try {
+                config.saveConfig();
+            } catch (Exception saveError) {
+                LOGGER.warning("Failed to restore config after mode toggle error: "
+                        + saveError.getMessage());
+            }
+
+            try {
+                restartConnections(wasRunning);
+            } catch (Exception restartError) {
+                LOGGER.warning("Failed to restore sensor runtime after mode toggle error: "
+                        + restartError.getMessage());
+            }
+
+            syncModeControls(config.isUseRealSensor());
+            AlertUtil.showError("Mode Switch Failed", "Could not switch sensor mode: " + e.getMessage());
+            updateStatus("Sensor mode change failed.");
+        }
+    }
+
+    @FXML
+    private void handleSettings(ActionEvent event) {
+        try {
+            FXMLLoader loader = new FXMLLoader(
+                    DashboardApplication.class.getResource("/com/iot/dashboard/settings.fxml"));
+            Parent root = loader.load();
+
+            SettingsController controller = loader.getController();
+            controller.setOnSettingsSaved(this::restartConnections);
+
+            Stage settingsStage = new Stage();
+            settingsStage.setTitle("Application Settings");
+            settingsStage.setScene(new Scene(root, 500, 600));
+            settingsStage.initModality(Modality.APPLICATION_MODAL);
+            settingsStage.setResizable(false);
+            settingsStage.centerOnScreen();
+            settingsStage.showAndWait();
+
+        } catch (Exception e) {
+            LOGGER.log(Level.SEVERE, "Failed to open settings dialog", e);
+            AlertUtil.showError("Settings Error", "Failed to open settings: " + e.getMessage());
+        }
+    }
+
+    /**
+     * Restarts sensor connections after settings have been saved.
+     * Called when user saves settings and closes the settings dialog.
+     */
+    private void restartConnections() {
+        restartConnections(simulationRunning);
+    }
+
+    private void restartConnections(boolean shouldResume) {
+        try {
+            // Stop current connections
+            stopCurrentSources();
+
+            // Reload configuration
+            ConfigManager.getInstance().reload();
+            DatabaseManager.getInstance().refreshDataSource();
+
+            // Restart with new configuration
+            syncModeControls(ConfigManager.getInstance().isUseRealSensor());
+            if (shouldResume) {
+                startAllSources();
+                updateStatus("✓ Settings applied. Sensor connections restarted.");
+            } else {
+                startStopButton.setText("▶ Resume");
+                updateStatus("✓ Settings applied. Sensor connections are paused.");
+            }
+
+        } catch (Exception e) {
+            LOGGER.log(Level.SEVERE, "Failed to restart connections", e);
+            AlertUtil.showError("Restart Error", "Failed to restart connections: " + e.getMessage());
+            updateStatus("✗ Failed to restart connections. Check logs.");
         }
     }
 

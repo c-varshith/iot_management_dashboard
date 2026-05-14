@@ -52,6 +52,14 @@
                     text="📄 Generate Report"
                     onAction="#handleGenerateReport"
                     styleClass="btn-accent" />
+            <Button fx:id="settingsButton"
+                    text="⚙ Settings"
+                    onAction="#handleSettings"
+                    styleClass="btn-secondary" />
+            <ToggleButton fx:id="modeToggleButton"
+                          text="Simulation"
+                          onAction="#handleModeToggle"
+                          styleClass="btn-mode" />
             <Button fx:id="logoutButton"
                     text="⏏ Logout"
                     onAction="#handleLogout"
@@ -177,6 +185,9 @@
                    text="● Initialising simulation..."
                    styleClass="status-text"
                    HBox.hgrow="ALWAYS" />
+            <Label fx:id="modeStatusLabel"
+                   text="Mode: full simulation"
+                   styleClass="status-right" />
             <Label text="MySQL | HikariCP | JavaFX 17" styleClass="status-right" />
         </HBox>
     </bottom>

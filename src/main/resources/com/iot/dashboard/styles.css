@@ -249,6 +249,27 @@
     -fx-background-color: rgba(247,129,102,0.12);
 }
 
+.btn-mode {
+    -fx-background-color: rgba(0,180,216,0.12);
+    -fx-text-fill: #48CAE4;
+    -fx-border-color: rgba(0,180,216,0.35);
+    -fx-border-width: 1;
+    -fx-border-radius: 8;
+    -fx-background-radius: 8;
+    -fx-padding: 7 14;
+    -fx-cursor: hand;
+    -fx-font-size: 12px;
+}
+.btn-mode:hover {
+    -fx-background-color: rgba(0,180,216,0.18);
+    -fx-border-color: #48CAE4;
+}
+.btn-mode:selected {
+    -fx-background-color: rgba(46,160,67,0.16);
+    -fx-text-fill: #7EE787;
+    -fx-border-color: rgba(46,160,67,0.45);
+}
+
 .btn-subtle {
     -fx-background-color: #21262D;
     -fx-text-fill: #C9D1D9;
@@ -446,6 +467,11 @@
 .status-right {
     -fx-text-fill: #30363D;
     -fx-font-size: 10px;
+}
+
+.mode-label {
+    -fx-text-fill: #7D8590;
+    -fx-font-size: 11px;
 }
 
 /* ─── SCROLL BAR (minimal dark style) ────────────────────── */

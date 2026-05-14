@@ -14,6 +14,11 @@ db.url=jdbc:mysql://localhost:3306/iot_dashboard?useSSL=false&allowPublicKeyRetr
 db.username=YOUR_MYSQL_USERNAME
 db.password=YOUR_MYSQL_PASSWORD
 
+# Sensor mode — the dashboard toggle updates this automatically after login
+use.real.sensor=false
+serial.port=/dev/ttyUSB0
+baud.rate=9600
+
 # ============================================================
 # HikariCP Connection Pool (safe defaults — tune for production)
 # ============================================================

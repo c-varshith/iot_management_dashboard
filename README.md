@@ -31,9 +31,9 @@ src="https://img.shields.io/badge/Sensor%20Modes-Real%20%2B%20Simulation-FF6B35?
    <a href="#tech-stack">Stack</a>
 </p>
 
-> **Default:** Full simulation mode. Switch to real sensor mode to connect an Arduino DHT sensor via USB serial.
+> **Default:** Full simulation mode. Switch to real sensor mode from the dashboard toggle or the external config file.
 
-> **Release builds:** The Linux zip and Windows exe include the application and JavaFX runtime. You still need a working MySQL database and a valid `database.properties` configuration.
+> **Release builds:** The Linux and Windows zip packages include the application and JavaFX runtime. You still need a working MySQL database and a valid `database.properties` configuration.
 
 | At a glance | Value |
 |---|---|
@@ -53,13 +53,13 @@ src="https://img.shields.io/badge/Sensor%20Modes-Real%20%2B%20Simulation-FF6B35?
 - 📄 **PDF Reports** — Export styled sensor data and analytics as professional PDF documents
 - 🔐 **Admin Console** — Secure dashboard with admin authentication and user management
 - 📈 **Historical Analytics** — Query and visualize past sensor data with date range filtering
-- 🎛️ **Flexible Configuration** — Toggle between real sensors and simulation via single config flag
+- 🎛️ **Flexible Configuration** — Toggle between real sensors and simulation in-app or via config
 
 ---
 
 ## Sensor Modes
 
-The application supports two operational modes. Set `USE_REAL_SENSOR` in your config to switch.
+The application supports two operational modes. Set `use.real.sensor=true|false` in your config, or use the dashboard toggle after login.
 
 | Mode | Data Source | Best For |
 |---|---|---|
@@ -67,6 +67,89 @@ The application supports two operational modes. Set `USE_REAL_SENSOR` in your co
 | **Full Simulation Mode** | All four sensors (temperature, humidity, voltage, power) simulated with Gaussian distribution | Development, testing, demos |
 
 Live LineCharts refresh at **1 Hz** with a **60-point sliding window**. All readings persist to MySQL and are queryable by date range.
+
+---
+
+## ⚙️ Configuration & Settings
+
+The application is now fully configurable **without requiring rebuilds**. Configuration can be managed in two ways:
+
+### Option 1: Settings UI (Recommended for Release Builds)
+
+After logging in to the dashboard, use the **Real Sensor / Simulation** toggle for quick switching, or click **⚙ Settings** for the full configuration dialog.
+
+#### Database Configuration
+- **Database URL** — JDBC connection string (change host, port, or database name)
+- **Username** — MySQL database user
+- **Password** — MySQL database password
+
+#### Sensor Configuration
+- **Use Real Sensor** — Toggle between:
+  - ✓ **Enabled**: Temperature and Humidity from Arduino; Voltage and Power simulated
+  - ✗ **Disabled**: All four sensors fully simulated (default)
+- **Serial Port** — COM port or tty device (e.g., `COM3` on Windows, `/dev/ttyUSB0` on Linux)
+- **Baud Rate** — Serial communication speed (typically `9600` or `115200`)
+
+**After saving settings, the application will:**
+1. Write the new configuration to `~/.iot-dashboard/config.properties`
+2. Rebuild the database connection pool if the database credentials changed
+3. Restart all sensor connections with the new settings
+4. Display a confirmation message
+
+### Option 2: Config File (Direct Edit)
+
+Edit the external configuration file directly:
+
+**Linux/macOS:**
+```bash
+nano ~/.iot-dashboard/config.properties
+```
+
+**Windows:**
+```
+%USERPROFILE%\.iot-dashboard\config.properties
+```
+
+Example configuration:
+```properties
+# Database
+db.url=jdbc:mysql://localhost:3306/iot_dashboard?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC&rewriteBatchedStatements=true
+db.username=root
+db.password=your_mysql_password
+
+# Sensor Mode
+use.real.sensor=false
+serial.port=/dev/ttyUSB0
+baud.rate=9600
+```
+
+You can also override the config file path and individual values at launch:
+
+```bash
+java \
+  -Diot.dashboard.config=/path/to/config.properties \
+  -Diot.dashboard.db.password=your_mysql_password \
+  -Diot.dashboard.use.real.sensor=true \
+  -jar iot-dashboard.jar
+```
+
+Environment variables are supported too:
+
+- `IOT_DASHBOARD_CONFIG`
+- `DB_PASSWORD`
+- `USE_REAL_SENSOR`
+- `SERIAL_PORT`
+- `BAUD_RATE`
+
+**Note:** Changes take effect after restarting the application or clicking Settings > Save & Apply, and the dashboard toggle persists the sensor mode immediately.
+
+### Configuration Priority
+
+The application loads configuration in this order:
+
+1. **JVM / environment overrides** — highest priority
+2. **External file** (`~/.iot-dashboard/config.properties` by default, or `IOT_DASHBOARD_CONFIG`) — if present, overrides defaults
+3. **Embedded defaults** — fallback values for fresh installations
 
 ---
 
@@ -104,11 +187,24 @@ mysql -u root -p -e "CREATE DATABASE IF NOT EXISTS iot_dashboard;"
 
 The app runs its own schema setup on startup, but you can also initialize the schema manually with `setup.sql` if you prefer.
 
-### 4. Ensure database credentials match
+### 4. Configure database credentials (if needed)
 
-**For packaged releases:** The `database.properties` file is baked into the JAR at build time and is part of the classpath. The release was built with default localhost:3306 credentials. If your MySQL server uses different credentials, you will need to rebuild from source (see section below).
+**For packaged releases:** The first time you run the app, check if the default MySQL credentials work:
+- Default: `localhost:3306`, username: `root`, password: (empty or default)
 
-**For source builds:** You will copy the template and edit it before packaging.
+If your MySQL uses **different credentials**, you have two options:
+
+**Option A: Use the Settings UI**
+1. Launch the app: `./bin/iot-dashboard`
+2. Log in with `admin` / `admin123`
+3. Click the **⚙ Settings** button
+4. Update Database URL, Username, and Password
+5. Click **Save & Apply**
+
+The new credentials will be saved to `~/.iot-dashboard/config.properties` and used for all future launches.
+
+**Option B: Rebuild from source** (if you prefer not to use the Settings UI)
+- Clone the repo, edit `src/main/resources/database.properties`, rebuild and repackage
 
 ### 5. Run the app
 
@@ -151,7 +247,7 @@ Copy the template configuration file:
 cp database.properties.example src/main/resources/database.properties
 ```
 
-Edit `src/main/resources/database.properties` with your MySQL server credentials. This file will be embedded in the JAR when you build:
+Edit `src/main/resources/database.properties` with your MySQL server credentials, or use the Settings dialog after the app starts:
 
 ```properties
 db.url=jdbc:mysql://localhost:3306/iot_dashboard?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC&rewriteBatchedStatements=true
@@ -159,7 +255,7 @@ db.username=root
 db.password=YOUR_ACTUAL_PASSWORD_HERE
 ```
 
-**Important:** This file is git-ignored and contains your database password. Never commit it to version control.
+**Important:** Prefer the external config file or the Settings dialog for day-to-day use so the password never has to live in source control.
 
 ### 3. Initialize the MySQL database
 
@@ -386,15 +482,11 @@ System.out.println(Arrays.toString(RealSensorReader.listAvailablePorts()));
 
 ### 3. Enable real sensor mode
 
-Edit [src/main/java/com/iot/dashboard/DashboardApplication.java](src/main/java/com/iot/dashboard/DashboardApplication.java):
+Use either:
 
-```java
-private static final boolean USE_REAL_SENSOR = true;          // ← enable real sensor
-private static final String  SERIAL_PORT     = "COM3";        // ← Windows example
-// private static final String SERIAL_PORT   = "/dev/ttyUSB0"; // ← Linux
-// private static final String SERIAL_PORT   = "/dev/cu.usbmodem14101"; // ← macOS
-private static final int     BAUD_RATE       = 9600;          // ← must match firmware
-```
+- the dashboard toggle after login
+- `use.real.sensor=true` in `~/.iot-dashboard/config.properties`
+- `-Diot.dashboard.use.real.sensor=true` at launch
 
 ### 4. Restart the application
 

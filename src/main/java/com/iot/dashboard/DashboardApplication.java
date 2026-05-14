@@ -1,6 +1,7 @@
 package com.iot.dashboard;
 
 import com.iot.dashboard.database.DatabaseSetup;
+import com.iot.dashboard.util.ConfigManager;
 import javafx.application.Application;
 import javafx.application.Platform;
 import javafx.fxml.FXMLLoader;
@@ -114,7 +115,8 @@ public class DashboardApplication extends Application {
                 "The application could not connect to the MySQL database.\n\n" +
                 "Please check:\n" +
                 "  1. MySQL server is running (port 3306)\n" +
-                "  2. src/main/resources/database.properties has correct credentials\n" +
+                "  2. The external config file has correct credentials\n" +
+                "     " + ConfigManager.getInstance().getConfigPath() + "\n" +
                 "  3. The 'iot_dashboard' database has been created\n" +
                 "     (run setup.sql in MySQL Workbench)\n\n" +
                 "Default config: localhost:3306 / root / your_password_here");

@@ -4,6 +4,7 @@ on:
   push:
     tags:
       - 'v*'
+  workflow_dispatch:
 
 permissions:
   contents: write
@@ -39,7 +40,7 @@ jobs:
 
       - name: Package app image
         run: |
-          JAR_NAME=$(ls target/*.jar | xargs -n1 basename | grep 'iot-dashboard' | head -n1)
+          JAR_NAME=$(find target -maxdepth 1 -name '*-shaded.jar' -printf '%f\n' | head -n1)
           JAVAFX_LIB=$(echo javafx/javafx-sdk-*/lib)
           mkdir -p dist
           jpackage \
@@ -63,6 +64,7 @@ jobs:
           path: dist/iot-dashboard-linux.zip
 
       - name: Upload Linux release asset
+        if: startsWith(github.ref, 'refs/tags/v')
         uses: softprops/action-gh-release@v2
         with:
           files: dist/iot-dashboard-linux.zip
@@ -101,29 +103,37 @@ jobs:
             Invoke-WebRequest -Uri $url -OutFile (Join-Path javafx\lib $item.File)
           }
 
-      - name: Package exe
+      - name: Package app image
         shell: pwsh
         run: |
-          $jar = (Get-ChildItem target\*.jar | Where-Object { $_.Name -like 'iot-dashboard*' } | Select-Object -First 1).Name
+          $jar = (Get-ChildItem target\*-shaded.jar | Select-Object -First 1).Name
           New-Item -ItemType Directory -Force -Path dist | Out-Null
           jpackage `
             --input target `
             --name iot-dashboard `
             --main-jar $jar `
-            --type exe `
+            --type app-image `
             --dest dist `
             --module-path javafx\lib `
             --add-modules javafx.controls,javafx.fxml
+
+      - name: Zip Windows app image
+        shell: pwsh
+        run: |
+          $appDir = Get-ChildItem dist | Where-Object { $_.PSIsContainer -and $_.Name -like 'iot-dashboard*' } | Select-Object -First 1
+          if (-not $appDir) { throw "Windows app image directory not found in dist." }
+          Compress-Archive -Path $appDir.FullName -DestinationPath dist\iot-dashboard-windows.zip -Force
 
       - name: Upload Windows artifact
         uses: actions/upload-artifact@v4
         with:
           name: iot-dashboard-windows
-          path: dist/*.exe
+          path: dist/iot-dashboard-windows.zip
 
       - name: Upload Windows release asset
+        if: startsWith(github.ref, 'refs/tags/v')
         uses: softprops/action-gh-release@v2
         with:
-          files: dist/*.exe
+          files: dist/iot-dashboard-windows.zip
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
