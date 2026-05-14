@@ -87,18 +87,24 @@ jobs:
       - name: Download JavaFX SDK
         shell: pwsh
         run: |
-          New-Item -ItemType Directory -Force -Path javafx | Out-Null
-          $sdkUrl = "https://download2.gluonhq.com/openjfx/$env:JAVAFX_VERSION/openjfx-$env:JAVAFX_VERSION_windows-x64_bin-sdk.zip"
-          Invoke-WebRequest -Uri $sdkUrl -OutFile javafx\javafx-sdk.zip
-          Expand-Archive -Path javafx\javafx-sdk.zip -DestinationPath javafx -Force
-          Remove-Item javafx\javafx-sdk.zip
+          New-Item -ItemType Directory -Force -Path javafx\lib | Out-Null
+          mvn -q org.apache.maven.plugins:maven-dependency-plugin:3.6.1:copy `
+            -Dartifact=org.openjfx:javafx-base:$env:JAVAFX_VERSION:jar:win `
+            -DoutputDirectory=javafx\lib
+          mvn -q org.apache.maven.plugins:maven-dependency-plugin:3.6.1:copy `
+            -Dartifact=org.openjfx:javafx-graphics:$env:JAVAFX_VERSION:jar:win `
+            -DoutputDirectory=javafx\lib
+          mvn -q org.apache.maven.plugins:maven-dependency-plugin:3.6.1:copy `
+            -Dartifact=org.openjfx:javafx-controls:$env:JAVAFX_VERSION:jar:win `
+            -DoutputDirectory=javafx\lib
+          mvn -q org.apache.maven.plugins:maven-dependency-plugin:3.6.1:copy `
+            -Dartifact=org.openjfx:javafx-fxml:$env:JAVAFX_VERSION:jar:win `
+            -DoutputDirectory=javafx\lib
 
       - name: Package exe
         shell: pwsh
         run: |
           $jar = (Get-ChildItem target\*.jar | Where-Object { $_.Name -like 'iot-dashboard*' } | Select-Object -First 1).Name
-          $javafx = (Get-ChildItem javafx | Where-Object { $_.Name -like 'javafx-sdk-*' } | Select-Object -First 1).FullName
-          $lib = Join-Path $javafx 'lib'
           New-Item -ItemType Directory -Force -Path dist | Out-Null
           jpackage `
             --input target `
@@ -106,7 +112,7 @@ jobs:
             --main-jar $jar `
             --type exe `
             --dest dist `
-            --module-path $lib `
+            --module-path javafx\lib `
             --add-modules javafx.controls,javafx.fxml
 
       - name: Upload Windows artifact
