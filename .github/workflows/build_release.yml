@@ -1,0 +1,86 @@
+name: Build and Package Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+permissions:
+  contents: write
+
+env:
+  JAVA_VERSION: '17'
+  JAVAFX_VERSION: '17.0.6'
+
+jobs:
+  package:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v4
+
+    - name: Set up JDK
+      uses: actions/setup-java@v4
+      with:
+        distribution: 'temurin'
+        java-version: ${{ env.JAVA_VERSION }}
+
+    - name: Build (skip tests)
+      run: mvn -B -DskipTests package
+
+    - name: Download JavaFX SDK
+      run: |
+        set -e
+        if [[ "${{ matrix.os }}" == "ubuntu-latest" ]]; then
+          mvn org.apache.maven.plugins:maven-dependency-plugin:3.5.0:copy \
+            -Dartifact=org.openjfx:javafx-sdk:${{ env.JAVAFX_VERSION }}:linux-x64 \
+            -DoutputDirectory=javafx
+          unzip javafx/javafx-sdk-*.zip -d javafx
+        else
+          mvn org.apache.maven.plugins:maven-dependency-plugin:3.5.0:copy \
+            -Dartifact=org.openjfx:javafx-sdk:${{ env.JAVAFX_VERSION }}:windows-x64 \
+            -DoutputDirectory=javafx
+          powershell -Command "Expand-Archive -Path javafx\javafx-sdk-*.zip -DestinationPath javafx"
+        fi
+
+    - name: Package with jpackage
+      run: |
+        set -e
+        JAVAFX_LIB=$(echo javafx/javafx-sdk-*/lib)
+        mkdir -p dist
+        # detect built jar name in target
+        JARNAME=$(ls target/*.jar | xargs -n1 basename | grep iot-dashboard | head -n1)
+        echo "Using JAR: $JARNAME"
+        if [[ "${{ matrix.os }}" == "ubuntu-latest" ]]; then
+          jpackage --input target \
+            --name iot-dashboard \
+            --main-jar "$JARNAME" \
+            --type app-image \
+            --dest dist \
+            --module-path "$JAVAFX_LIB" \
+            --add-modules javafx.controls,javafx.fxml
+          APPDIR=$(find dist -maxdepth 1 -type d -name 'iot-dashboard*' | head -n1)
+          zip -r "dist/iot-dashboard-linux.zip" "$APPDIR"
+        else
+          powershell -Command "& { $JAVAFX_LIB=(Get-ChildItem -Path javafx -Filter 'javafx-sdk-*' | Select-Object -First 1).FullName + '\\lib'; mkdir dist; $jar=(Get-ChildItem -Path target -Filter '*.jar' | Where-Object { $_.Name -like 'iot-dashboard*' } | Select-Object -First 1).Name; jpackage --input target --name iot-dashboard --main-jar $jar --type exe --dest dist --module-path \"$JAVAFX_LIB\" --add-modules javafx.controls,javafx.fxml }"
+        fi
+
+    - name: Upload release assets
+      uses: softprops/action-gh-release@v1
+      with:
+        tag_name: ${{ github.ref_name }}
+        files: |
+          dist/*.zip
+          dist/*.exe
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+    - name: Upload dist artifacts
+      uses: actions/upload-artifact@v4
+      with:
+        name: packaged-artifacts-${{ matrix.os }}
+        path: dist

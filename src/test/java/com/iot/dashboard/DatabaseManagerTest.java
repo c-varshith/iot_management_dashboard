@@ -61,7 +61,7 @@ class DatabaseManagerTest {
                 "  device_id  INT       NOT NULL," +
                 "  type_id    INT       NOT NULL," +
                 "  timestamp  TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP," +
-                "  value      FLOAT     NOT NULL" +
+                "  reading_value      FLOAT     NOT NULL" +
                 ")"
             );
             st.execute(
@@ -103,7 +103,7 @@ class DatabaseManagerTest {
     @DisplayName("Should insert a sensor reading and retrieve it correctly")
     void testInsertAndRetrieveSensorData() throws SQLException {
         // === INSERT ===
-        String insertSql = "INSERT INTO sensor_data (device_id, type_id, timestamp, value) " +
+        String insertSql = "INSERT INTO sensor_data (device_id, type_id, timestamp, reading_value) " +
                            "VALUES (?, ?, ?, ?)";
         try (PreparedStatement ps = conn.prepareStatement(insertSql)) {
             ps.setInt      (1, 1);
@@ -115,7 +115,7 @@ class DatabaseManagerTest {
 
         // === RETRIEVE ===
         String selectSql = "SELECT sd.device_id, sd.type_id, st.measurement, st.unit, " +
-                           "       sd.value, sd.timestamp " +
+                           "       sd.reading_value, sd.timestamp " +
                            "FROM sensor_data sd " +
                            "JOIN sensor_types st ON sd.type_id = st.type_id " +
                            "WHERE sd.type_id = 1 ORDER BY sd.timestamp DESC LIMIT 10";
@@ -126,7 +126,7 @@ class DatabaseManagerTest {
             assertEquals(1,        rs.getInt("type_id"));
             assertEquals("Temperature", rs.getString("measurement"));
             assertEquals("°C",     rs.getString("unit"));
-            assertEquals(23.5f,    rs.getFloat("value"), 0.001f);
+            assertEquals(23.5f,    rs.getFloat("reading_value"), 0.001f);
         }
     }
 
@@ -202,7 +202,7 @@ class DatabaseManagerTest {
         LocalDateTime past1h = now.minusHours(1);
         LocalDateTime future = now.plusHours(1);
 
-        String insert = "INSERT INTO sensor_data (device_id, type_id, timestamp, value) VALUES (?,?,?,?)";
+        String insert = "INSERT INTO sensor_data (device_id, type_id, timestamp, reading_value) VALUES (?,?,?,?)";
         try (PreparedStatement ps = conn.prepareStatement(insert)) {
             // Reading 2 hours ago — should be EXCLUDED from [1h_ago, now] range
             ps.setInt      (1, 1); ps.setInt(2, 3);
@@ -234,7 +234,7 @@ class DatabaseManagerTest {
     @Order(5)
     @DisplayName("Batch insert correctly persists multiple readings in one transaction")
     void testBatchInsert() throws SQLException {
-        String insert = "INSERT INTO sensor_data (device_id, type_id, timestamp, value) VALUES (?,?,?,?)";
+        String insert = "INSERT INTO sensor_data (device_id, type_id, timestamp, reading_value) VALUES (?,?,?,?)";
         int batchSize = 100;
 
         conn.setAutoCommit(false);

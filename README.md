@@ -18,6 +18,13 @@ src="https://img.shields.io/badge/Sensor%20Modes-Real%20%2B%20Simulation-FF6B35?
 </p>
 
 <p align="center">
+   <a href="/LICENSE"><img src="https://img.shields.io/badge/License-MIT-111827?style=for-the-badge" alt="license"/></a>
+   <a href="https://github.com/c-varshith/iot_management_dashboard/releases/latest"><img src="https://img.shields.io/github/v/release/c-varshith/iot_management_dashboard?style=for-the-badge" alt="release"/></a>
+   <a href="https://github.com/c-varshith/iot_management_dashboard/actions"><img src="https://img.shields.io/github/actions/workflow/status/c-varshith/iot_management_dashboard/ci.yml?style=for-the-badge&label=build" alt="build status"/></a>
+   <a href="https://github.com/c-varshith/iot_management_dashboard"><img src="https://img.shields.io/github/languages/top/c-varshith/iot_management_dashboard?style=for-the-badge" alt="languages"/></a>
+</p>
+
+<p align="center">
    <a href="#features">Features</a> &bull;
    <a href="#sensor-modes">Sensor Modes</a> &bull;
    <a href="#running-locally">Setup</a> &bull;
