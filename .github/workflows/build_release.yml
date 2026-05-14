@@ -63,6 +63,8 @@ EOF
         if: startsWith(github.ref, 'refs/tags/v')
         uses: softprops/action-gh-release@v2
         with:
+          tag_name: ${{ github.ref_name }}
+          name: ${{ github.ref_name }}
           files: dist/iot-dashboard-linux.zip
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -82,7 +84,7 @@ EOF
       - name: Build
         run: mvn -B clean package -DskipTests
 
-      - name: Package portable bundle
+      - name: Package exe
         shell: pwsh
         run: |
           $jarPath = Get-ChildItem target -Filter *-shaded.jar | Select-Object -First 1
@@ -90,45 +92,28 @@ EOF
             throw "Shaded jar not found in target directory."
           }
 
-          $packageDir = "dist\iot-dashboard-windows"
-          New-Item -ItemType Directory -Force -Path $packageDir | Out-Null
-
-          jlink `
-            --add-modules java.se `
-            --output "$packageDir\runtime" `
-            --strip-debug `
-            --no-header-files `
-            --no-man-pages `
-            --compress=2
-
-          Copy-Item $jarPath.FullName "$packageDir\$($jarPath.Name)"
-
-          $runBat = @"
-@echo off
-setlocal
-set "DIR=%~dp0"
-"%DIR%runtime\bin\java.exe" -jar "%DIR%$($jarPath.Name)" %*
-"@
-
-          $runBat | Set-Content -Encoding Ascii "$packageDir\run.bat"
-
-      - name: Zip Windows app image
-        shell: pwsh
-        run: |
-          $appDir = Get-ChildItem dist | Where-Object { $_.PSIsContainer -and $_.Name -eq 'iot-dashboard-windows' } | Select-Object -First 1
-          if (-not $appDir) { throw "Windows app image directory not found in dist." }
-          Compress-Archive -Path $appDir.FullName -DestinationPath dist\iot-dashboard-windows.zip -Force
+          New-Item -ItemType Directory -Force -Path dist | Out-Null
+          $jpackageArgs = @(
+            '--input', 'target',
+            '--name', 'iot-dashboard',
+            '--main-jar', $jarPath.Name,
+            '--type', 'exe',
+            '--dest', 'dist'
+          )
+          & jpackage @jpackageArgs
 
       - name: Upload Windows artifact
         uses: actions/upload-artifact@v4
         with:
           name: iot-dashboard-windows
-          path: dist/iot-dashboard-windows.zip
+          path: dist/*.exe
 
       - name: Upload Windows release asset
         if: startsWith(github.ref, 'refs/tags/v')
         uses: softprops/action-gh-release@v2
         with:
-          files: dist/iot-dashboard-windows.zip
+          tag_name: ${{ github.ref_name }}
+          name: ${{ github.ref_name }}
+          files: dist/*.exe
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
