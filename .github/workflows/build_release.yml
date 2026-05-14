@@ -55,6 +55,7 @@ EOF
         with:
           name: linux-package
           path: dist/iot-dashboard-linux.zip
+          if-no-files-found: error
 
   windows:
     runs-on: windows-latest
@@ -115,6 +116,7 @@ EOF
         with:
           name: windows-package
           path: dist/*.exe
+          if-no-files-found: error
 
   release:
     needs:
@@ -127,21 +129,26 @@ EOF
         uses: actions/download-artifact@v4
         with:
           name: linux-package
-          path: release-assets
+          path: release-assets/linux
 
       - name: Download Windows artifact
         uses: actions/download-artifact@v4
         with:
           name: windows-package
-          path: release-assets
+          path: release-assets/windows
+
+      - name: Verify release assets
+        run: |
+          find release-assets -maxdepth 3 -type f | sort
 
       - name: Publish release assets
         uses: softprops/action-gh-release@v2
         with:
           tag_name: ${{ github.ref_name }}
           name: ${{ github.ref_name }}
+          fail_on_unmatched_files: true
           files: |
-            release-assets/iot-dashboard-linux.zip
-            release-assets/*.exe
+            release-assets/linux/*.zip
+            release-assets/windows/*.exe
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
