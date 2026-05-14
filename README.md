@@ -33,6 +33,8 @@ src="https://img.shields.io/badge/Sensor%20Modes-Real%20%2B%20Simulation-FF6B35?
 
 > **Default:** Full simulation mode. Switch to real sensor mode to connect an Arduino DHT sensor via USB serial.
 
+> **Release builds:** The Linux zip and Windows exe include the application and JavaFX runtime. You still need a working MySQL database and a valid `database.properties` configuration.
+
 | At a glance | Value |
 |---|---|
 | Sensor sources | Arduino (real) or Gaussian simulation |
@@ -79,7 +81,60 @@ Live LineCharts refresh at **1 Hz** with a **60-point sliding window**. All read
 
 ---
 
-## Running Locally
+## Run the Linux Release
+
+### 1. Download the release asset
+
+From the GitHub release page, download `iot-dashboard-linux.zip`.
+
+### 2. Extract the archive
+
+```bash
+unzip iot-dashboard-linux.zip
+cd iot-dashboard
+```
+
+### 3. Prepare MySQL
+
+Make sure MySQL 8 is running and create the database:
+
+```bash
+mysql -u root -p -e "CREATE DATABASE IF NOT EXISTS iot_dashboard;"
+```
+
+The app runs its own schema setup on startup, but you can also initialize the schema manually with `setup.sql` if you prefer.
+
+### 4. Ensure database credentials match
+
+**For packaged releases:** The `database.properties` file is baked into the JAR at build time and is part of the classpath. The release was built with default localhost:3306 credentials. If your MySQL server uses different credentials, you will need to rebuild from source (see section below).
+
+**For source builds:** You will copy the template and edit it before packaging.
+
+### 5. Run the app
+
+```bash
+./bin/iot-dashboard
+```
+
+If the launcher is not executable on your system, run:
+
+```bash
+chmod +x ./bin/iot-dashboard
+./bin/iot-dashboard
+```
+
+### 6. Log in
+
+| Field | Default Value |
+|---|---|
+| Username | `admin` |
+| Password | `admin123` |
+
+> ⚠️ Change the default password after first login.
+
+## Run from Source
+
+Use these steps if you want to modify the code, change the database settings, or rebuild the app yourself.
 
 ### 1. Clone the repo
 
@@ -90,17 +145,21 @@ cd iot_management_dashboard
 
 ### 2. Configure database credentials
 
+Copy the template configuration file:
+
 ```bash
 cp database.properties.example src/main/resources/database.properties
 ```
 
-Edit `src/main/resources/database.properties` with your MySQL credentials:
+Edit `src/main/resources/database.properties` with your MySQL server credentials. This file will be embedded in the JAR when you build:
 
 ```properties
 db.url=jdbc:mysql://localhost:3306/iot_dashboard?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC&rewriteBatchedStatements=true
 db.username=root
 db.password=YOUR_ACTUAL_PASSWORD_HERE
 ```
+
+**Important:** This file is git-ignored and contains your database password. Never commit it to version control.
 
 ### 3. Initialize the MySQL database
 
@@ -118,6 +177,8 @@ The script creates:
 - `admin_users` table with default user `admin/admin123`
 - `sensor_data` table for storing readings
 - Indexes and constraints for data integrity
+
+Note: on startup the application also runs its own database setup routine, so the database only needs to exist and be reachable.
 
 ### 4. Build and run
 
