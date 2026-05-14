@@ -33,7 +33,7 @@ src="https://img.shields.io/badge/Sensor%20Modes-Real%20%2B%20Simulation-FF6B35?
 
 > **Default:** Full simulation mode. Switch to real sensor mode from the dashboard toggle or the external config file.
 
-> **Release builds:** The Linux and Windows zip packages include the application and JavaFX runtime. You still need a working MySQL database and a valid `database.properties` configuration.
+> **Release builds:** The Linux and Windows zip packages include the application and a bundled Java runtime. You still need a working MySQL database and a valid `database.properties` configuration.
 
 | At a glance | Value |
 |---|---|

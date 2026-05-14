@@ -11,7 +11,6 @@ permissions:
 
 env:
   JAVA_VERSION: '17'
-  JAVAFX_VERSION: '17.0.19'
 
 jobs:
   linux:
@@ -29,33 +28,30 @@ jobs:
       - name: Build
         run: mvn -B clean package -DskipTests
 
-      - name: Download JavaFX SDK
+      - name: Package portable bundle
         run: |
-          mkdir -p javafx
-          curl -fsSL \
-            -o javafx/javafx-sdk.zip \
-            https://download2.gluonhq.com/openjfx/${{ env.JAVAFX_VERSION }}/openjfx-${{ env.JAVAFX_VERSION }}_linux-x64_bin-sdk.zip
-          unzip -q javafx/javafx-sdk.zip -d javafx
-          rm javafx/javafx-sdk.zip
-
-      - name: Package app image
-        run: |
-          JAR_NAME=$(find target -maxdepth 1 -name '*-shaded.jar' -printf '%f\n' | head -n1)
-          JAVAFX_LIB=$(find javafx -type d -path '*/lib' | head -n1)
-          mkdir -p dist
-          jpackage \
-            --input target \
-            --name iot-dashboard \
-            --main-jar "$JAR_NAME" \
-            --type app-image \
-            --dest dist \
-            --module-path "$JAVAFX_LIB" \
-            --add-modules javafx.controls,javafx.fxml
+          JAR_PATH=$(find target -maxdepth 1 -name '*-shaded.jar' | head -n1)
+          JAR_NAME=$(basename "$JAR_PATH")
+          PACKAGE_DIR=dist/iot-dashboard-linux
+          mkdir -p "$PACKAGE_DIR"
+          jlink \
+            --add-modules java.se \
+            --output "$PACKAGE_DIR/runtime" \
+            --strip-debug \
+            --no-header-files \
+            --no-man-pages \
+            --compress=2
+          cp "$JAR_PATH" "$PACKAGE_DIR/$JAR_NAME"
+          cat > "$PACKAGE_DIR/run.sh" <<EOF
+#!/usr/bin/env sh
+DIR="\$(CDPATH= cd -- "\$(dirname -- "\$0")" && pwd)"
+exec "\$DIR/runtime/bin/java" -jar "\$DIR/$JAR_NAME" "\$@"
+EOF
+          chmod +x "$PACKAGE_DIR/run.sh"
 
       - name: Zip Linux app image
         run: |
-          APP_DIR=$(find dist -maxdepth 1 -type d -name 'iot-dashboard*' | head -n1)
-          zip -r dist/iot-dashboard-linux.zip "$APP_DIR"
+          (cd dist && zip -r iot-dashboard-linux.zip iot-dashboard-linux)
 
       - name: Upload Linux artifact
         uses: actions/upload-artifact@v4
@@ -86,44 +82,40 @@ jobs:
       - name: Build
         run: mvn -B clean package -DskipTests
 
-      - name: Download JavaFX SDK
+      - name: Package portable bundle
         shell: pwsh
         run: |
-          New-Item -ItemType Directory -Force -Path javafx\lib | Out-Null
-          $baseUrl = "https://repo1.maven.org/maven2/org/openjfx"
-          $downloads = @(
-            @{ Name = "javafx-base"; File = "javafx-base-$env:JAVAFX_VERSION-win.jar" },
-            @{ Name = "javafx-graphics"; File = "javafx-graphics-$env:JAVAFX_VERSION-win.jar" },
-            @{ Name = "javafx-controls"; File = "javafx-controls-$env:JAVAFX_VERSION-win.jar" },
-            @{ Name = "javafx-fxml"; File = "javafx-fxml-$env:JAVAFX_VERSION-win.jar" }
-          )
-
-          foreach ($item in $downloads) {
-            $url = "$baseUrl/$($item.Name)/$env:JAVAFX_VERSION/$($item.File)"
-            Invoke-WebRequest -Uri $url -OutFile (Join-Path javafx\lib $item.File)
+          $jarPath = Get-ChildItem target -Filter *-shaded.jar | Select-Object -First 1
+          if (-not $jarPath) {
+            throw "Shaded jar not found in target directory."
           }
 
-      - name: Package app image
-        shell: pwsh
-        run: |
-          $jar = (Get-ChildItem target\*-shaded.jar | Select-Object -First 1).Name
-          $javafxLib = (Get-ChildItem javafx -Recurse -Directory | Where-Object { $_.Name -eq 'lib' } | Select-Object -First 1).FullName
-          New-Item -ItemType Directory -Force -Path dist | Out-Null
-          $jpackageArgs = @(
-            '--input', 'target',
-            '--name', 'iot-dashboard',
-            '--main-jar', $jar,
-            '--type', 'app-image',
-            '--dest', 'dist',
-            '--module-path', $javafxLib,
-            '--add-modules', 'javafx.controls,javafx.fxml'
-          )
-          & jpackage @jpackageArgs
+          $packageDir = "dist\iot-dashboard-windows"
+          New-Item -ItemType Directory -Force -Path $packageDir | Out-Null
+
+          jlink `
+            --add-modules java.se `
+            --output "$packageDir\runtime" `
+            --strip-debug `
+            --no-header-files `
+            --no-man-pages `
+            --compress=2
+
+          Copy-Item $jarPath.FullName "$packageDir\$($jarPath.Name)"
+
+          $runBat = @"
+@echo off
+setlocal
+set "DIR=%~dp0"
+"%DIR%runtime\bin\java.exe" -jar "%DIR%$($jarPath.Name)" %*
+"@
+
+          $runBat | Set-Content -Encoding Ascii "$packageDir\run.bat"
 
       - name: Zip Windows app image
         shell: pwsh
         run: |
-          $appDir = Get-ChildItem dist | Where-Object { $_.PSIsContainer -and $_.Name -like 'iot-dashboard*' } | Select-Object -First 1
+          $appDir = Get-ChildItem dist | Where-Object { $_.PSIsContainer -and $_.Name -eq 'iot-dashboard-windows' } | Select-Object -First 1
           if (-not $appDir) { throw "Windows app image directory not found in dist." }
           Compress-Archive -Path $appDir.FullName -DestinationPath dist\iot-dashboard-windows.zip -Force
 
