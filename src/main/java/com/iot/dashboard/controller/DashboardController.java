@@ -28,6 +28,7 @@ import java.time.format.DateTimeFormatter;
 import java.util.Arrays;
 import java.util.EnumSet;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.ResourceBundle;
 import java.util.concurrent.ConcurrentLinkedQueue;
@@ -46,25 +47,16 @@ import java.util.logging.Logger;
  * ─────────────────────────────────────────────────────────────────────────────
  *
  *   USE_REAL_SENSOR  — set true to enable real temperature/humidity sensor.
- *                      When true:
- *                        • RealSensorReader reads from SERIAL_PORT.
- *                        • SensorSimulator skips TEMPERATURE and HUMIDITY.
- *                        • Voltage and Active Power remain simulated.
- *                      When false:
- *                        • All four sensors are simulated (original behaviour).
- *
- *   SERIAL_PORT      — the COM port or tty device your Arduino is connected to.
- *                      Windows : "COM3"  (check Device Manager → Ports)
- *                      Linux   : "/dev/ttyUSB0" or "/dev/ttyACM0"
- *                      macOS   : "/dev/cu.usbmodem14101"
- *
- *   BAUD_RATE        — must match Serial.begin(rate) in your Arduino sketch.
- *                      Default: 9600
- *
- * To find your port, temporarily add this line to initialize():
- *   System.out.println(Arrays.toString(RealSensorReader.listAvailablePorts()));
+ *   SERIAL_PORT      — COM port or tty device the Arduino is connected to.
+ *   BAUD_RATE        — must match Serial.begin(rate) in the Arduino sketch.
  *
  * ─────────────────────────────────────────────────────────────────────────────
+ *
+ * CRUD operations exposed via this controller:
+ *   CREATE — sensor readings inserted on every tick (insertSensorData)
+ *   READ   — live charts, data table, alert count label (SELECT queries + JOIN)
+ *   UPDATE — "Resolve All Alerts" button → resolveAlert() / updateDeviceStatus()
+ *   DELETE — "Clear Old Data" button     → deleteOldReadings() (actual DB delete)
  */
 public class DashboardController implements Initializable {
 
@@ -73,31 +65,23 @@ public class DashboardController implements Initializable {
     // =========================================================================
     // ★  REAL SENSOR CONFIGURATION — edit here
     // =========================================================================
-
-    /** Set to true to use your physical temperature/humidity sensor. */
     private static final boolean USE_REAL_SENSOR = false;
-
-    /** Serial port your Arduino/sensor board is connected to. */
     private static final String  SERIAL_PORT     = "/dev/ttyUSB0";
-
-    /** Baud rate — must match Serial.begin() in your Arduino sketch. */
     private static final int     BAUD_RATE       = 9600;
 
     // =========================================================================
     // Constants
     // =========================================================================
-
-    /** Maximum visible data points per chart (60s scrolling window at 1 Hz). */
     private static final int    WINDOW_SIZE = 60;
     private static final DateTimeFormatter TIME_FMT = DateTimeFormatter.ofPattern("HH:mm:ss");
 
     // =========================================================================
     // FXML Injected Components
     // =========================================================================
-
     @FXML private Label   titleLabel;
     @FXML private Label   clockLabel;
     @FXML private Label   readingCountLabel;
+    @FXML private Label   alertCountLabel;      // NEW — shows active alert count
     @FXML private Button  startStopButton;
     @FXML private Button  reportButton;
     @FXML private Button  logoutButton;
@@ -123,48 +107,40 @@ public class DashboardController implements Initializable {
     // =========================================================================
     // Internal State
     // =========================================================================
-
-    private SensorSimulator         simulator;
-    private RealSensorReader        realSensorReader;
+    private SensorSimulator          simulator;
+    private RealSensorReader         realSensorReader;
     private ScheduledExecutorService clockScheduler;
+    private ScheduledExecutorService alertScheduler;   // NEW — polls alert count
 
-    private final Map<SensorType, XYChart.Series<Number, Number>> chartSeriesMap     = new HashMap<>();
+    private final Map<SensorType, XYChart.Series<Number, Number>> chartSeriesMap      = new HashMap<>();
     private final Map<SensorType, Label>                           currentValueLabelMap = new HashMap<>();
     private final Map<SensorType, AtomicLong>                      xCounterMap          = new HashMap<>();
     private final ObservableList<SensorData>                       tableData            = FXCollections.observableArrayList();
 
-    private static final int TABLE_MAX_ROWS  = 200;
+    private static final int TABLE_MAX_ROWS   = 200;
     private              boolean simulationRunning = false;
 
     // =========================================================================
     // Initialisation
     // =========================================================================
-
     @Override
     public void initialize(URL url, ResourceBundle resourceBundle) {
         setupCharts();
         setupTable();
         setupCurrentValueLabels();
         startClock();
+        startAlertPoller();   // NEW — periodically refresh alert count from DB
         startAllSources();
     }
 
     // =========================================================================
-    // Source startup — simulator + optional real sensor
+    // Source startup
     // =========================================================================
-
     private void startAllSources() {
-        if (USE_REAL_SENSOR) {
-            startWithRealSensor();
-        } else {
-            startFullSimulation();
-        }
+        if (USE_REAL_SENSOR) startWithRealSensor();
+        else                  startFullSimulation();
     }
 
-    /**
-     * Full simulation mode (USE_REAL_SENSOR = false).
-     * All four sensor types are generated by SensorSimulator.
-     */
     private void startFullSimulation() {
         simulator = new SensorSimulator(this::onSensorDataReceived);
         simulator.start();
@@ -173,22 +149,11 @@ public class DashboardController implements Initializable {
         updateStatus("Simulation running — all four sensors are simulated.");
     }
 
-    /**
-     * Real sensor mode (USE_REAL_SENSOR = true).
-     *
-     * • RealSensorReader  → Temperature + Humidity (from Arduino via serial)
-     * • SensorSimulator   → Voltage + Active Power (still simulated)
-     *
-     * The Pause/Resume button controls both sources together.
-     */
     private void startWithRealSensor() {
         LOGGER.info("Starting in REAL SENSOR mode. Port: " + SERIAL_PORT);
-
-        // 1. Real reader for Temperature and Humidity
         realSensorReader = new RealSensorReader(SERIAL_PORT, BAUD_RATE, this::onSensorDataReceived);
         realSensorReader.start();
 
-        // 2. Simulator for Voltage and Active Power only (Temperature + Humidity excluded)
         simulator = new SensorSimulator(
                 this::onSensorDataReceived,
                 EnumSet.of(SensorType.TEMPERATURE, SensorType.HUMIDITY)
@@ -197,14 +162,46 @@ public class DashboardController implements Initializable {
 
         simulationRunning = true;
         startStopButton.setText("⏸ Pause");
-        updateStatus("Real sensor active on " + SERIAL_PORT
-                + " | Voltage & Power simulated.");
+        updateStatus("Real sensor active on " + SERIAL_PORT + ".");
     }
 
     // =========================================================================
-    // Chart Setup
+    // Alert Poller — READ alerts from DB every 5 seconds
     // =========================================================================
 
+    /**
+     * Polls the alerts table every 5 seconds and refreshes the alert count label.
+     * This demonstrates a live READ query against the alerts table (populated
+     * automatically by the trg_high_sensor_alert trigger).
+     */
+    private void startAlertPoller() {
+        alertScheduler = Executors.newSingleThreadScheduledExecutor(r -> {
+            Thread t = new Thread(r, "AlertPollerThread");
+            t.setDaemon(true);
+            return t;
+        });
+        alertScheduler.scheduleAtFixedRate(() -> {
+            try {
+                int count = DatabaseManager.getInstance().getActiveAlertCount();
+                Platform.runLater(() -> {
+                    if (alertCountLabel != null) {
+                        alertCountLabel.setText(count > 0
+                            ? "🔔 Alerts: " + count
+                            : "✅ No Alerts");
+                        alertCountLabel.setStyle(count > 0
+                            ? "-fx-text-fill: #ff6b6b;"
+                            : "-fx-text-fill: #51cf66;");
+                    }
+                });
+            } catch (Exception e) {
+                LOGGER.log(Level.WARNING, "Alert poll failed", e);
+            }
+        }, 2, 5, TimeUnit.SECONDS);
+    }
+
+    // =========================================================================
+    // Chart / Table Setup
+    // =========================================================================
     private void setupCharts() {
         setupSingleChart(tempChart,  SensorType.TEMPERATURE,  "Temperature (°C)", 10,  50);
         setupSingleChart(humidChart, SensorType.HUMIDITY,     "Humidity (%)",     20,  100);
@@ -236,10 +233,6 @@ public class DashboardController implements Initializable {
         xCounterMap.put(type, new AtomicLong(0));
     }
 
-    // =========================================================================
-    // Table Setup
-    // =========================================================================
-
     private void setupTable() {
         colSensor.setCellValueFactory(new PropertyValueFactory<>("sensorName"));
         colValue.setCellValueFactory(new PropertyValueFactory<>("value"));
@@ -266,10 +259,6 @@ public class DashboardController implements Initializable {
         dataTable.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY);
     }
 
-    // =========================================================================
-    // Current Value Labels
-    // =========================================================================
-
     private void setupCurrentValueLabels() {
         currentValueLabelMap.put(SensorType.TEMPERATURE,  tempCurrentLabel);
         currentValueLabelMap.put(SensorType.HUMIDITY,     humidCurrentLabel);
@@ -278,14 +267,8 @@ public class DashboardController implements Initializable {
     }
 
     // =========================================================================
-    // Data reception — called from both SensorSimulator and RealSensorReader
+    // Data reception
     // =========================================================================
-
-    /**
-     * Unified data receiver.
-     * Called from background threads (simulator threads OR the real sensor reader thread).
-     * All UI mutations go through Platform.runLater() to satisfy FXAT constraint.
-     */
     private void onSensorDataReceived(SensorData data) {
         Platform.runLater(() -> {
             updateChart(data);
@@ -295,10 +278,6 @@ public class DashboardController implements Initializable {
         });
     }
 
-    /**
-     * Sliding Window chart update.
-     * Keeps memory usage constant regardless of runtime duration.
-     */
     private void updateChart(SensorData data) {
         SensorType type = SensorType.fromTypeId(data.getTypeId());
         XYChart.Series<Number, Number> series = chartSeriesMap.get(type);
@@ -328,7 +307,7 @@ public class DashboardController implements Initializable {
     }
 
     private void updateReadingCount() {
-        long simCount  = simulator        != null ? simulator.getTotalGenerated()  : 0;
+        long simCount = simulator != null ? simulator.getTotalGenerated() : 0;
         readingCountLabel.setText("Readings: " + simCount);
     }
 
@@ -339,8 +318,7 @@ public class DashboardController implements Initializable {
     @FXML
     private void handleStartStop(ActionEvent event) {
         if (simulationRunning) {
-            // Pause both sources
-            if (simulator != null)        simulator.stop();
+            if (simulator        != null) simulator.stop();
             if (realSensorReader != null) realSensorReader.stop();
             simulationRunning = false;
             startStopButton.setText("▶ Resume");
@@ -348,7 +326,6 @@ public class DashboardController implements Initializable {
                     ? "Paused — real sensor and simulation stopped."
                     : "Simulation paused.");
         } else {
-            // Resume
             startAllSources();
             updateStatus(USE_REAL_SENSOR
                     ? "Resumed — real sensor active on " + SERIAL_PORT + "."
@@ -411,16 +388,90 @@ public class DashboardController implements Initializable {
         }
     }
 
+    /**
+     * Clears the on-screen table AND permanently deletes readings from the
+     * database that are older than 24 hours.
+     *
+     * This is the DELETE CRUD operation — it executes:
+     *   DELETE FROM sensor_data WHERE timestamp < NOW() - INTERVAL 24 HOUR
+     *
+     * It also calls the GetSensorStats stored procedure to log a final
+     * summary before purging.
+     */
     @FXML
     private void handleClearData(ActionEvent event) {
+        boolean confirm = AlertUtil.showConfirmation(
+                "Clear Old Data",
+                "This will:\n" +
+                "  • Clear the on-screen readings table\n" +
+                "  • Delete all DB readings older than 24 hours\n\n" +
+                "Recent readings are kept. Continue?");
+
+        if (!confirm) return;
+
+        // Log stats via stored procedure before deleting (READ via SP)
+        String tempStats  = DatabaseManager.getInstance().callGetSensorStats(1, 24);
+        String powerStats = DatabaseManager.getInstance().callGetSensorStats(4, 24);
+        LOGGER.info("Pre-delete stats — " + tempStats);
+        LOGGER.info("Pre-delete stats — " + powerStats);
+
+        // Nested subquery: find devices that currently have active alerts (Chapter 6)
+        List<String[]> alertingDevices = DatabaseManager.getInstance().getDevicesWithActiveAlerts();
+        LOGGER.info("Devices with active alerts before purge: " + alertingDevices.size());
+
+        // DELETE old readings from the database
+        int deleted = DatabaseManager.getInstance().deleteOldReadings(24);
+
+        // Clear the UI table
         tableData.clear();
-        updateStatus("Table cleared.");
+
+        updateStatus("Deleted " + deleted + " old DB reading(s). UI table cleared.");
+        AlertUtil.showInfo("Data Cleared",
+                "Deleted " + deleted + " sensor reading(s) older than 24 h from the database.\n\n" +
+                "Temperature stats (last 24 h):\n" + tempStats);
+    }
+
+    /**
+     * Resolves all active alerts in the database.
+     *
+     * This is the UPDATE CRUD operation — for each active alert it executes:
+     *   UPDATE alerts SET is_resolved = 1 WHERE alert_id = ?
+     *
+     * Bound to the "Resolve Alerts" button in dashboard.fxml.
+     */
+    @FXML
+    private void handleResolveAlerts(ActionEvent event) {
+        // Uses the vw_active_alerts VIEW (Advanced SQL — Chapter 6)
+        List<String[]> activeAlerts =
+                DatabaseManager.getInstance().getActiveAlertsFromView(200);
+
+        if (activeAlerts.isEmpty()) {
+            AlertUtil.showInfo("No Active Alerts", "There are no active alerts to resolve.");
+            return;
+        }
+
+        boolean confirm = AlertUtil.showConfirmation(
+                "Resolve Alerts",
+                "Mark all " + activeAlerts.size() + " active alert(s) as resolved?");
+        if (!confirm) return;
+
+        int resolved = 0;
+        for (String[] alert : activeAlerts) {
+            int alertId = Integer.parseInt(alert[0]);
+            if (DatabaseManager.getInstance().resolveAlert(alertId)) resolved++;
+        }
+
+        // Clean up resolved alerts from DB (DELETE)
+        int deleted = DatabaseManager.getInstance().deleteResolvedAlerts();
+
+        updateStatus("Resolved " + resolved + " alert(s). Cleaned up " + deleted + " record(s).");
+        AlertUtil.showInfo("Alerts Resolved",
+                resolved + " alert(s) resolved and removed from the database.");
     }
 
     // =========================================================================
     // Clock
     // =========================================================================
-
     private void startClock() {
         clockScheduler = Executors.newSingleThreadScheduledExecutor(r -> {
             Thread t = new Thread(r, "ClockThread");
@@ -437,14 +488,11 @@ public class DashboardController implements Initializable {
     // =========================================================================
     // Lifecycle
     // =========================================================================
-
     public void shutdown() {
         if (simulator        != null && simulator.isRunning())        simulator.stop();
         if (realSensorReader != null && realSensorReader.isRunning()) realSensorReader.stop();
         if (clockScheduler   != null) clockScheduler.shutdownNow();
-        // NOTE: Do NOT close the HikariCP pool here — the pool is shared for the
-        // entire JVM lifetime. Closing it on logout prevents re-authentication.
-        // Pool shutdown is handled in DashboardApplication.stop() on true app exit.
+        if (alertScheduler   != null) alertScheduler.shutdownNow();
         LOGGER.info("DashboardController shutdown complete.");
     }
 

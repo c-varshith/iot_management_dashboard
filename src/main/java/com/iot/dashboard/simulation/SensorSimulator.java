@@ -26,7 +26,10 @@ public class SensorSimulator {
     private static final Logger LOGGER = Logger.getLogger(SensorSimulator.class.getName());
 
     private static final long EMIT_INTERVAL_MS = 1000L;
-    private static final int  DEVICE_ID        = 1;
+    private static int deviceIdForType(SensorType type)
+    {
+        return type.getTypeId();
+    }
 
     private final ScheduledExecutorService          scheduler;
     private final ConcurrentLinkedQueue<SensorData> dataQueue;
@@ -142,7 +145,7 @@ public class SensorSimulator {
                                   Math.min(type.getMaxClamp(), rawValue));
 
             SensorData data = new SensorData(
-                    DEVICE_ID,
+                    deviceIdForType(type),
                     type.getTypeId(),
                     type.getMeasurement(),
                     type.getUnit(),

@@ -250,8 +250,8 @@
 }
 
 .btn-subtle {
-    -fx-background-color: transparent;
-    -fx-text-fill: #7D8590;
+    -fx-background-color: #21262D;
+    -fx-text-fill: #C9D1D9;
     -fx-border-color: #30363D;
     -fx-border-width: 1;
     -fx-border-radius: 6;
@@ -267,9 +267,9 @@
 
 /* ─── METRIC SUMMARY CARDS ────────────────────────────────── */
 .metric-card {
-    -fx-background-color: #161B22;
+    -fx-background-color: #21262D;
     -fx-background-radius: 10;
-    -fx-border-color: #21262D;
+    -fx-border-color: #30363D;
     -fx-border-width: 1;
     -fx-border-radius: 10;
     -fx-padding: 10 12;
@@ -279,19 +279,20 @@
 .metric-label {
     -fx-font-size: 11px;
     -fx-font-weight: bold;
-    -fx-text-fill: #7D8590;
+    -fx-text-fill: #C9D1D9;
 }
 
 .metric-value {
     -fx-font-family: "Courier New", monospace;
-    -fx-font-size: 20px;
+    -fx-font-size: 22px;
     -fx-font-weight: bold;
+    -fx-text-fill: #E6EDF3;
 }
 
-.metric-temp  .metric-value { -fx-text-fill: #F78166; }
-.metric-humid .metric-value { -fx-text-fill: #00B4D8; }
-.metric-volt  .metric-value { -fx-text-fill: #E3B341; }
-.metric-power .metric-value { -fx-text-fill: #2EA043; }
+.metric-temp  .metric-value { -fx-text-fill: #FF8C7A; }
+.metric-humid .metric-value { -fx-text-fill: #29D5F5; }
+.metric-volt  .metric-value { -fx-text-fill: #F0C040; }
+.metric-power .metric-value { -fx-text-fill: #3DD68C; }
 
 .metric-temp  { -fx-border-color: rgba(247,129,102,0.3); }
 .metric-humid { -fx-border-color: rgba(0,180,216,0.3); }
@@ -376,7 +377,7 @@
 .section-title {
     -fx-font-size: 13px;
     -fx-font-weight: bold;
-    -fx-text-fill: #7D8590;
+    -fx-text-fill: #E6EDF3;
 }
 
 .data-table {
@@ -463,4 +464,52 @@
 .scroll-bar .decrement-button {
     -fx-background-color: transparent;
     -fx-padding: 0;
+}
+
+/* ─── ALERT / CONFIRMATION DIALOGS ────────────────────────── */
+.dialog-pane {
+    -fx-background-color: #161B22;
+    -fx-border-color: #30363D;
+    -fx-border-width: 1;
+}
+
+.dialog-pane .content.label,
+.dialog-pane > .content,
+.dialog-pane .label {
+    -fx-text-fill: #E6EDF3;
+    -fx-background-color: transparent;
+}
+
+.dialog-pane .header-panel {
+    -fx-background-color: #0D1117;
+}
+
+.dialog-pane .header-panel .label {
+    -fx-text-fill: #E6EDF3;
+    -fx-font-size: 14px;
+    -fx-font-weight: bold;
+}
+
+.dialog-pane .button-bar .button {
+    -fx-background-color: #21262D;
+    -fx-text-fill: #E6EDF3;
+    -fx-border-color: #30363D;
+    -fx-border-width: 1;
+    -fx-border-radius: 6;
+    -fx-background-radius: 6;
+    -fx-cursor: hand;
+}
+
+.dialog-pane .button-bar .button:hover {
+    -fx-background-color: #30363D;
+}
+
+.dialog-pane .button-bar .button:default {
+    -fx-background-color: #1F6FEB;
+    -fx-text-fill: white;
+    -fx-border-color: transparent;
+}
+
+.dialog-pane .button-bar .button:default:hover {
+    -fx-background-color: #388BFD;
 }
