@@ -10,7 +10,7 @@ permissions:
 
 env:
   JAVA_VERSION: '17'
-  JAVAFX_VERSION: '17.0.6'
+  JAVAFX_VERSION: '17.0.19'
 
 jobs:
   linux:
@@ -30,10 +30,12 @@ jobs:
 
       - name: Download JavaFX SDK
         run: |
-          mvn -q org.apache.maven.plugins:maven-dependency-plugin:3.6.1:copy \
-            -Dartifact=org.openjfx:javafx-sdk:${{ env.JAVAFX_VERSION }}:linux-x64 \
-            -DoutputDirectory=javafx
-          unzip -q javafx/javafx-sdk-*.zip -d javafx
+          mkdir -p javafx
+          curl -fsSL \
+            -o javafx/javafx-sdk.zip \
+            https://download2.gluonhq.com/openjfx/${{ env.JAVAFX_VERSION }}/openjfx-${{ env.JAVAFX_VERSION }}_linux-x64_bin-sdk.zip
+          unzip -q javafx/javafx-sdk.zip -d javafx
+          rm javafx/javafx-sdk.zip
 
       - name: Package app image
         run: |
@@ -85,10 +87,11 @@ jobs:
       - name: Download JavaFX SDK
         shell: pwsh
         run: |
-          mvn -q org.apache.maven.plugins:maven-dependency-plugin:3.6.1:copy `
-            -Dartifact=org.openjfx:javafx-sdk:${env:JAVAFX_VERSION}:windows-x64 `
-            -DoutputDirectory=javafx
-          Expand-Archive -Path (Get-ChildItem javafx\javafx-sdk-*.zip | Select-Object -First 1) -DestinationPath javafx -Force
+          New-Item -ItemType Directory -Force -Path javafx | Out-Null
+          $sdkUrl = "https://download2.gluonhq.com/openjfx/$env:JAVAFX_VERSION/openjfx-$env:JAVAFX_VERSION_windows-x64_bin-sdk.zip"
+          Invoke-WebRequest -Uri $sdkUrl -OutFile javafx\javafx-sdk.zip
+          Expand-Archive -Path javafx\javafx-sdk.zip -DestinationPath javafx -Force
+          Remove-Item javafx\javafx-sdk.zip
 
       - name: Package exe
         shell: pwsh
