@@ -3,14 +3,14 @@ name: Build and Package Release
 on:
   push:
     tags:
-      - 'v*'
+      - "v*"
   workflow_dispatch:
 
 permissions:
   contents: write
 
 env:
-  JAVA_VERSION: '17'
+  JAVA_VERSION: "17"
 
 jobs:
   linux:
@@ -28,7 +28,7 @@ jobs:
       - name: Build
         run: mvn -B clean package -DskipTests
 
-      - name: Package portable bundle
+      - name: Package Linux zip
         run: |
           JAR_PATH=$(find target -maxdepth 1 -name '*-shaded.jar' | head -n1)
           JAR_NAME=$(basename "$JAR_PATH")
@@ -48,26 +48,13 @@ DIR="\$(CDPATH= cd -- "\$(dirname -- "\$0")" && pwd)"
 exec "\$DIR/runtime/bin/java" -jar "\$DIR/$JAR_NAME" "\$@"
 EOF
           chmod +x "$PACKAGE_DIR/run.sh"
-
-      - name: Zip Linux app image
-        run: |
           (cd dist && zip -r iot-dashboard-linux.zip iot-dashboard-linux)
 
       - name: Upload Linux artifact
         uses: actions/upload-artifact@v4
         with:
-          name: iot-dashboard-linux
+          name: linux-package
           path: dist/iot-dashboard-linux.zip
-
-      - name: Upload Linux release asset
-        if: startsWith(github.ref, 'refs/tags/v')
-        uses: softprops/action-gh-release@v2
-        with:
-          tag_name: ${{ github.ref_name }}
-          name: ${{ github.ref_name }}
-          files: dist/iot-dashboard-linux.zip
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
   windows:
     runs-on: windows-latest
@@ -81,10 +68,14 @@ EOF
           distribution: temurin
           java-version: ${{ env.JAVA_VERSION }}
 
+      - name: Install WiX Toolset
+        shell: pwsh
+        run: choco install wixtoolset -y --no-progress
+
       - name: Build
         run: mvn -B clean package -DskipTests
 
-      - name: Package exe
+      - name: Package Windows exe
         shell: pwsh
         run: |
           $jarPath = Get-ChildItem target -Filter *-shaded.jar | Select-Object -First 1
@@ -102,18 +93,45 @@ EOF
           )
           & jpackage @jpackageArgs
 
+          $exe = Get-ChildItem dist -Filter *.exe | Select-Object -First 1
+          if (-not $exe) {
+            throw "Windows exe was not created."
+          }
+
+          Copy-Item $exe.FullName dist\iot-dashboard-windows.exe -Force
+
       - name: Upload Windows artifact
         uses: actions/upload-artifact@v4
         with:
-          name: iot-dashboard-windows
-          path: dist/*.exe
+          name: windows-package
+          path: dist/iot-dashboard-windows.exe
 
-      - name: Upload Windows release asset
-        if: startsWith(github.ref, 'refs/tags/v')
+  release:
+    needs:
+      - linux
+      - windows
+    runs-on: ubuntu-latest
+    if: startsWith(github.ref, 'refs/tags/v')
+    steps:
+      - name: Download Linux artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: linux-package
+          path: release-assets
+
+      - name: Download Windows artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: windows-package
+          path: release-assets
+
+      - name: Publish release assets
         uses: softprops/action-gh-release@v2
         with:
           tag_name: ${{ github.ref_name }}
           name: ${{ github.ref_name }}
-          files: dist/*.exe
+          files: |
+            release-assets/iot-dashboard-linux.zip
+            release-assets/iot-dashboard-windows.exe
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
