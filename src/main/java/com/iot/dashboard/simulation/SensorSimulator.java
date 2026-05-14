@@ -66,7 +66,7 @@ public class SensorSimulator {
         this.totalGenerated  = new AtomicLong(0);
 
         ThreadFactory namedFactory = r -> {
-            Thread t = new Thread(r, "SensorSimThread-" + Thread.currentThread().threadId());
+            Thread t = new Thread(r, "SensorSimThread-" + Thread.currentThread().getId());
             t.setDaemon(true);
             return t;
         };
