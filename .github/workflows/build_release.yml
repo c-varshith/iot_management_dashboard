@@ -88,18 +88,18 @@ jobs:
         shell: pwsh
         run: |
           New-Item -ItemType Directory -Force -Path javafx\lib | Out-Null
-          mvn -q org.apache.maven.plugins:maven-dependency-plugin:3.6.1:copy `
-            -Dartifact=org.openjfx:javafx-base:$env:JAVAFX_VERSION:jar:win `
-            -DoutputDirectory=javafx\lib
-          mvn -q org.apache.maven.plugins:maven-dependency-plugin:3.6.1:copy `
-            -Dartifact=org.openjfx:javafx-graphics:$env:JAVAFX_VERSION:jar:win `
-            -DoutputDirectory=javafx\lib
-          mvn -q org.apache.maven.plugins:maven-dependency-plugin:3.6.1:copy `
-            -Dartifact=org.openjfx:javafx-controls:$env:JAVAFX_VERSION:jar:win `
-            -DoutputDirectory=javafx\lib
-          mvn -q org.apache.maven.plugins:maven-dependency-plugin:3.6.1:copy `
-            -Dartifact=org.openjfx:javafx-fxml:$env:JAVAFX_VERSION:jar:win `
-            -DoutputDirectory=javafx\lib
+          $baseUrl = "https://repo1.maven.org/maven2/org/openjfx"
+          $downloads = @(
+            @{ Name = "javafx-base"; File = "javafx-base-$env:JAVAFX_VERSION-win.jar" },
+            @{ Name = "javafx-graphics"; File = "javafx-graphics-$env:JAVAFX_VERSION-win.jar" },
+            @{ Name = "javafx-controls"; File = "javafx-controls-$env:JAVAFX_VERSION-win.jar" },
+            @{ Name = "javafx-fxml"; File = "javafx-fxml-$env:JAVAFX_VERSION-win.jar" }
+          )
+
+          foreach ($item in $downloads) {
+            $url = "$baseUrl/$($item.Name)/$env:JAVAFX_VERSION/$($item.File)"
+            Invoke-WebRequest -Uri $url -OutFile (Join-Path javafx\lib $item.File)
+          }
 
       - name: Package exe
         shell: pwsh
