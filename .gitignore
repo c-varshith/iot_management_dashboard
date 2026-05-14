@@ -3,13 +3,14 @@
 # ============================================================
 
 # ─── SECRETS — NEVER COMMIT THESE ───────────────────────────
+dependency-reduced-pom.xml
 src/main/resources/database.properties
 
 # ─── Maven build output ──────────────────────────────────────
 target/
 *.class
 *.jar
-dependency-reduced-pom.xml
+
 
 # ─── IDE files ───────────────────────────────────────────────
 .idea/
