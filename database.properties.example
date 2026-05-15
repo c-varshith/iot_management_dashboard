@@ -19,6 +19,10 @@ use.real.sensor=false
 serial.port=/dev/ttyUSB0
 baud.rate=9600
 
+# DHT sensor type — DHT11 or DHT22 (ignored in simulation mode)
+# DHT22 has higher accuracy (±0.5°C, ±2–5% RH) and wider range; DHT11 is cheaper
+dht.type=DHT22
+
 # ============================================================
 # HikariCP Connection Pool (safe defaults — tune for production)
 # ============================================================

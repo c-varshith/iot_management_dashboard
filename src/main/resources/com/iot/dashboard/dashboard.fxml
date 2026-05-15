@@ -56,10 +56,6 @@
                     text="⚙ Settings"
                     onAction="#handleSettings"
                     styleClass="btn-secondary" />
-            <ToggleButton fx:id="modeToggleButton"
-                          text="Simulation"
-                          onAction="#handleModeToggle"
-                          styleClass="btn-mode" />
             <Button fx:id="logoutButton"
                     text="⏏ Logout"
                     onAction="#handleLogout"

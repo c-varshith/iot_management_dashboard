@@ -53,16 +53,20 @@ public class RealSensorReader {
     private SerialPort serialPort;
     private Thread     readerThread;
 
+    private final String               dhtType;
+
     /**
      * @param portName       Serial port name, e.g. "COM3" or "/dev/ttyUSB0"
      * @param baudRate       Must match Arduino Serial.begin(rate) — typically 9600
+     * @param dhtType        "DHT11" or "DHT22" — logged at startup and sent to Arduino
      * @param onDataReceived Callback fired for each parsed Temperature and Humidity reading.
      *                       Called from the reader thread — do NOT update JavaFX nodes directly.
      *                       Wrap updates in Platform.runLater() (already done in DashboardController).
      */
-    public RealSensorReader(String portName, int baudRate, Consumer<SensorData> onDataReceived) {
+    public RealSensorReader(String portName, int baudRate, String dhtType, Consumer<SensorData> onDataReceived) {
         this.portName       = portName;
         this.baudRate       = baudRate;
+        this.dhtType        = (dhtType != null && !dhtType.isBlank()) ? dhtType : "DHT22";
         this.onDataReceived = onDataReceived;
     }
 
@@ -76,7 +80,7 @@ public class RealSensorReader {
             readerThread = new Thread(this::readLoop, "RealSensorThread");
             readerThread.setDaemon(true); // JVM can exit even if this thread is still alive
             readerThread.start();
-            LOGGER.info("RealSensorReader starting on port: " + portName + " @ " + baudRate + " baud");
+            LOGGER.info("RealSensorReader starting on port: " + portName + " @ " + baudRate + " baud, sensor: " + dhtType);
         }
     }
 
@@ -114,6 +118,18 @@ public class RealSensorReader {
         }
 
         LOGGER.info("RealSensorReader: port open — waiting for sensor data...");
+
+        // Notify the Arduino which sensor type is wired so it can select the
+        // correct library mode. The sketch should handle a "TYPE:DHT11\n" or
+        // "TYPE:DHT22\n" command line and reconfigure accordingly.
+        try {
+            String typeCmd = "TYPE:" + dhtType + "\n";
+            serialPort.getOutputStream().write(typeCmd.getBytes(java.nio.charset.StandardCharsets.US_ASCII));
+            serialPort.getOutputStream().flush();
+            LOGGER.info("RealSensorReader: sent sensor type command → " + typeCmd.trim());
+        } catch (Exception cmdEx) {
+            LOGGER.warning("RealSensorReader: could not send TYPE command: " + cmdEx.getMessage());
+        }
 
         try (BufferedReader reader = new BufferedReader(
                 new InputStreamReader(serialPort.getInputStream()))) {

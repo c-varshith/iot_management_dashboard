@@ -112,6 +112,7 @@ public class ConfigManager {
         applyOverride("use.real.sensor", "USE_REAL_SENSOR", "iot.dashboard.use.real.sensor");
         applyOverride("serial.port", "SERIAL_PORT", "iot.dashboard.serial.port");
         applyOverride("baud.rate", "BAUD_RATE", "iot.dashboard.baud.rate");
+        applyOverride("dht.type", "DHT_TYPE", "iot.dashboard.dht.type");
         applyOverride("hikari.maximumPoolSize", "HIKARI_MAX_POOL_SIZE", "iot.dashboard.hikari.maximumPoolSize");
         applyOverride("hikari.minimumIdle", "HIKARI_MIN_IDLE", "iot.dashboard.hikari.minimumIdle");
     }
@@ -207,6 +208,21 @@ public class ConfigManager {
 
     public void setBaudRate(int baudRate) {
         properties.setProperty("baud.rate", String.valueOf(baudRate));
+    }
+
+    /**
+     * DHT sensor type — "DHT11" or "DHT22".
+     * Defaults to DHT22 (higher accuracy, wider range).
+     */
+    public String getDhtType() {
+        return properties.getProperty("dht.type", "DHT22");
+    }
+
+    public void setDhtType(String dhtType) {
+        if (!"DHT11".equals(dhtType) && !"DHT22".equals(dhtType)) {
+            throw new IllegalArgumentException("dht.type must be DHT11 or DHT22, got: " + dhtType);
+        }
+        properties.setProperty("dht.type", dhtType);
     }
 
     // =========================================================================

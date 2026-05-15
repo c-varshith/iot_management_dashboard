@@ -14,39 +14,43 @@ import java.util.ResourceBundle;
 import java.util.logging.Logger;
 
 /**
- * SettingsController — Manages the settings dialog.
+ * SettingsController — manages the settings dialog.
  *
- * Responsibilities:
- *   1. Load current configuration from ConfigManager
- *   2. Display in form fields
- *   3. Validate user input on save
- *   4. Save to external config file
- *   5. Notify parent to restart connections
+ * Controls:
+ *  - Database URL / username / password
+ *  - Sensor mode toggle (Simulation ↔ Real Sensor) — top-right of header
+ *  - DHT sensor type (DHT11 / DHT22)
+ *  - Serial port + baud rate
  */
 public class SettingsController implements Initializable {
 
     private static final Logger LOGGER = Logger.getLogger(SettingsController.class.getName());
 
-    // =========================================================================
-    // FXML Injected Components
-    // =========================================================================
-
-    @FXML private TextField dbUrlField;
-    @FXML private TextField dbUsernameField;
+    // ── Database ──────────────────────────────────────────────────────────────
+    @FXML private TextField     dbUrlField;
+    @FXML private TextField     dbUsernameField;
     @FXML private PasswordField dbPasswordField;
 
-    @FXML private CheckBox useRealSensorCheckbox;
-    @FXML private TextField serialPortField;
-    @FXML private TextField baudRateField;
+    // ── Sensor mode toggle (header, top-right) ────────────────────────────────
+    @FXML private ToggleButton  modeToggleButton;
 
-    @FXML private Label statusLabel;
-    @FXML private Button saveButton;
-    @FXML private Button cancelButton;
+    // ── DHT type ─────────────────────────────────────────────────────────────
+    @FXML private ToggleGroup   dhtToggleGroup;
+    @FXML private RadioButton   dht22Radio;
+    @FXML private RadioButton   dht11Radio;
 
-    // =========================================================================
-    // Callback Interface
-    // =========================================================================
+    // ── Serial ───────────────────────────────────────────────────────────────
+    @FXML private TextField     serialPortField;
+    @FXML private TextField     baudRateField;
 
+    // ── Footer ───────────────────────────────────────────────────────────────
+    @FXML private Label         statusLabel;
+    @FXML private Button        saveButton;
+    @FXML private Button        cancelButton;
+
+    // ── Callback ─────────────────────────────────────────────────────────────
+
+    /** Called by DashboardController after settings are saved so it can restart connections. */
     private Runnable onSettingsSaved;
 
     public void setOnSettingsSaved(Runnable callback) {
@@ -66,11 +70,24 @@ public class SettingsController implements Initializable {
     private void loadCurrentSettings() {
         ConfigManager config = ConfigManager.getInstance();
 
+        // Database
         dbUrlField.setText(config.getDatabaseUrl());
         dbUsernameField.setText(config.getDatabaseUsername());
         dbPasswordField.setText(config.getDatabasePassword());
 
-        useRealSensorCheckbox.setSelected(config.isUseRealSensor());
+        // Mode toggle — text and selected state mirror the dashboard toggle
+        boolean useReal = config.isUseRealSensor();
+        modeToggleButton.setSelected(useReal);
+        syncModeToggleLabel(useReal);
+
+        // DHT type
+        if ("DHT11".equals(config.getDhtType())) {
+            dht11Radio.setSelected(true);
+        } else {
+            dht22Radio.setSelected(true);   // default DHT22
+        }
+
+        // Serial
         serialPortField.setText(config.getSerialPort());
         baudRateField.setText(String.valueOf(config.getBaudRate()));
 
@@ -81,13 +98,39 @@ public class SettingsController implements Initializable {
         saveButton.setOnAction(event -> handleSave());
         cancelButton.setOnAction(event -> handleCancel());
 
-        // Clear status message when user starts editing
+        // Mode toggle label update (visual only — actual save happens on Save & Apply)
+        modeToggleButton.selectedProperty().addListener((obs, oldVal, newVal) -> {
+            syncModeToggleLabel(newVal);
+            clearStatus();
+        });
+
+        // Clear status on any edit
         dbUrlField.setOnKeyTyped(e -> clearStatus());
         dbUsernameField.setOnKeyTyped(e -> clearStatus());
         dbPasswordField.setOnKeyTyped(e -> clearStatus());
         serialPortField.setOnKeyTyped(e -> clearStatus());
         baudRateField.setOnKeyTyped(e -> clearStatus());
-        useRealSensorCheckbox.selectedProperty().addListener((obs, oldVal, newVal) -> clearStatus());
+    }
+
+    /** Keeps the toggle button label in sync with its selected state. */
+    private void syncModeToggleLabel(boolean useReal) {
+        if (useReal) {
+            modeToggleButton.setText("Real Sensor");
+            modeToggleButton.setStyle(
+                "-fx-font-size: 11; -fx-padding: 5 14; -fx-cursor: hand;" +
+                "-fx-background-radius: 20; -fx-border-radius: 20;" +
+                "-fx-border-color: #22c55e; -fx-border-width: 1.5;" +
+                "-fx-background-color: #22c55e; -fx-text-fill: white;"
+            );
+        } else {
+            modeToggleButton.setText("Simulation");
+            modeToggleButton.setStyle(
+                "-fx-font-size: 11; -fx-padding: 5 14; -fx-cursor: hand;" +
+                "-fx-background-radius: 20; -fx-border-radius: 20;" +
+                "-fx-border-color: #0ea5e9; -fx-border-width: 1.5;" +
+                "-fx-background-color: transparent; -fx-text-fill: #0ea5e9;"
+            );
+        }
     }
 
     // =========================================================================
@@ -95,61 +138,62 @@ public class SettingsController implements Initializable {
     // =========================================================================
 
     private void handleSave() {
-        // Validate inputs
-        if (!validateInputs()) {
-            return;
-        }
+        if (!validateInputs()) return;
 
         ConfigManager config = ConfigManager.getInstance();
         Properties snapshot = config.snapshot();
 
         try {
-            // Update configuration values
+            // Database
             config.setDatabaseUrl(dbUrlField.getText().trim());
             config.setDatabaseUsername(dbUsernameField.getText().trim());
             config.setDatabasePassword(dbPasswordField.getText());
 
-            config.setUseRealSensor(useRealSensorCheckbox.isSelected());
+            // Sensor mode (from top-right toggle)
+            config.setUseRealSensor(modeToggleButton.isSelected());
+
+            // DHT type
+            String dhtType = dht11Radio.isSelected() ? "DHT11" : "DHT22";
+            config.setDhtType(dhtType);
+
+            // Serial
             config.setSerialPort(serialPortField.getText().trim());
             config.setBaudRate(Integer.parseInt(baudRateField.getText().trim()));
 
-            // Validate database credentials immediately so the user gets feedback
-            // before we persist the new configuration to disk.
+            // Validate DB credentials immediately before persisting
             DatabaseManager.getInstance().refreshDataSource();
 
-            // Save to external file
+            // Persist to ~/.iot-dashboard/config.properties
             config.saveConfig();
 
-            showSuccess("Settings saved successfully! Apply these changes?");
+            showSuccess("Settings saved.");
 
-            // Notify parent controller (DashboardController) to restart connections
+            // Notify DashboardController to restart sensor connections
             if (onSettingsSaved != null) {
                 onSettingsSaved.run();
             }
 
-            // Close dialog
             closeDialog();
 
         } catch (Exception e) {
+            // Roll back in-memory state
             config.restore(snapshot);
             try {
                 DatabaseManager.getInstance().refreshDataSource();
             } catch (Exception revertError) {
-                LOGGER.warning("Failed to restore previous database pool after settings error: "
-                        + revertError.getMessage());
+                LOGGER.warning("Failed to restore DB pool after settings error: " + revertError.getMessage());
             }
-            showError("Failed to save settings: " + e.getMessage());
+            showError("Failed to save: " + e.getMessage());
             LOGGER.severe("Settings save failed: " + e);
         }
     }
 
     private boolean validateInputs() {
-        String url = dbUrlField.getText().trim();
-        String username = dbUsernameField.getText().trim();
-        String port = serialPortField.getText().trim();
-        String baudRateStr = baudRateField.getText().trim();
+        String url          = dbUrlField.getText().trim();
+        String username     = dbUsernameField.getText().trim();
+        String port         = serialPortField.getText().trim();
+        String baudRateStr  = baudRateField.getText().trim();
 
-        // Database URL validation
         if (url.isEmpty()) {
             showError("Database URL cannot be empty.");
             return false;
@@ -158,29 +202,24 @@ public class SettingsController implements Initializable {
             showError("Database URL must start with 'jdbc:mysql://'");
             return false;
         }
-
-        // Username validation
         if (username.isEmpty()) {
             showError("Database username cannot be empty.");
             return false;
         }
 
-        // Serial port validation (only if real sensor is enabled)
-        if (useRealSensorCheckbox.isSelected()) {
-            if (port.isEmpty()) {
-                showError("Serial port cannot be empty when real sensor is enabled.");
-                return false;
-            }
+        // Serial port required only when real sensor is selected
+        if (modeToggleButton.isSelected() && port.isEmpty()) {
+            showError("Serial port cannot be empty when Real Sensor mode is selected.");
+            return false;
         }
 
-        // Baud rate validation
         if (baudRateStr.isEmpty()) {
             showError("Baud rate cannot be empty.");
             return false;
         }
         try {
-            int baudRate = Integer.parseInt(baudRateStr);
-            if (baudRate < 300 || baudRate > 921600) {
+            int baud = Integer.parseInt(baudRateStr);
+            if (baud < 300 || baud > 921600) {
                 showError("Baud rate must be between 300 and 921600.");
                 return false;
             }
@@ -193,7 +232,7 @@ public class SettingsController implements Initializable {
     }
 
     // =========================================================================
-    // Cancel Handler
+    // Cancel
     // =========================================================================
 
     private void handleCancel() {
@@ -201,7 +240,7 @@ public class SettingsController implements Initializable {
     }
 
     // =========================================================================
-    // UI Feedback
+    // UI feedback
     // =========================================================================
 
     private void showSuccess(String message) {
@@ -220,7 +259,7 @@ public class SettingsController implements Initializable {
     }
 
     // =========================================================================
-    // Dialog Management
+    // Dialog management
     // =========================================================================
 
     private void closeDialog() {

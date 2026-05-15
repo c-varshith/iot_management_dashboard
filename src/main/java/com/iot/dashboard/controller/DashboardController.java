@@ -86,7 +86,6 @@ public class DashboardController implements Initializable {
     @FXML private Button  reportButton;
     @FXML private Button  settingsButton;
     @FXML private Button  logoutButton;
-    @FXML private ToggleButton modeToggleButton;
 
     @FXML private LineChart<Number, Number> tempChart;
     @FXML private LineChart<Number, Number> humidChart;
@@ -157,10 +156,11 @@ public class DashboardController implements Initializable {
     private void startWithRealSensor() {
         ConfigManager config = ConfigManager.getInstance();
         String serialPort = config.getSerialPort();
-        int baudRate = config.getBaudRate();
+        int    baudRate   = config.getBaudRate();
+        String dhtType    = config.getDhtType();
 
-        LOGGER.info("Starting in REAL SENSOR mode. Port: " + serialPort + " @ " + baudRate + " baud");
-        realSensorReader = new RealSensorReader(serialPort, baudRate, this::onSensorDataReceived);
+        LOGGER.info("Starting in REAL SENSOR mode. Port: " + serialPort + " @ " + baudRate + " baud, DHT: " + dhtType);
+        realSensorReader = new RealSensorReader(serialPort, baudRate, dhtType, this::onSensorDataReceived);
         realSensorReader.start();
 
         simulator = new SensorSimulator(
@@ -276,10 +276,6 @@ public class DashboardController implements Initializable {
     }
 
     private void syncModeControls(boolean useRealSensor) {
-        if (modeToggleButton != null) {
-            modeToggleButton.setSelected(useRealSensor);
-            modeToggleButton.setText(useRealSensor ? "Real Sensor" : "Simulation");
-        }
         if (modeStatusLabel != null) {
             modeStatusLabel.setText(useRealSensor
                     ? "Mode: real sensor + simulation fallback"
@@ -361,49 +357,6 @@ public class DashboardController implements Initializable {
             updateStatus(config.isUseRealSensor()
                     ? "Resumed — real sensor active on " + config.getSerialPort() + "."
                     : "Simulation resumed.");
-        }
-    }
-
-    @FXML
-    private void handleModeToggle(ActionEvent event) {
-        boolean useRealSensor = modeToggleButton.isSelected();
-        ConfigManager config = ConfigManager.getInstance();
-        boolean wasRunning = simulationRunning;
-        java.util.Properties snapshot = config.snapshot();
-
-        try {
-            config.setUseRealSensor(useRealSensor);
-            config.saveConfig();
-
-            if (wasRunning || realSensorReader != null || simulator != null) {
-                restartConnections(wasRunning);
-            } else {
-                syncModeControls(useRealSensor);
-            }
-
-            updateStatus(useRealSensor
-                    ? "Real sensor mode enabled."
-                    : "Simulation mode enabled.");
-
-        } catch (Exception e) {
-            config.restore(snapshot);
-            try {
-                config.saveConfig();
-            } catch (Exception saveError) {
-                LOGGER.warning("Failed to restore config after mode toggle error: "
-                        + saveError.getMessage());
-            }
-
-            try {
-                restartConnections(wasRunning);
-            } catch (Exception restartError) {
-                LOGGER.warning("Failed to restore sensor runtime after mode toggle error: "
-                        + restartError.getMessage());
-            }
-
-            syncModeControls(config.isUseRealSensor());
-            AlertUtil.showError("Mode Switch Failed", "Could not switch sensor mode: " + e.getMessage());
-            updateStatus("Sensor mode change failed.");
         }
     }
 
