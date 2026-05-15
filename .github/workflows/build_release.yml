@@ -63,12 +63,13 @@ jobs:
           cp "$JAR_PATH" "$PACKAGE_DIR/$JAR_NAME"
 
           # Write launcher without heredoc (<<EOF breaks YAML parsers)
+          # Note: NO --module-path or --add-modules — modules are baked into
+          # the jlink runtime image already; passing --module-path causes
+          # "Package jdk.internal.jrtfs in both java.base and jrt.fs" crash
           {
             echo '#!/usr/bin/env sh'
             echo 'DIR="$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)"'
             echo 'exec "$DIR/runtime/bin/java" \'
-            echo '  --module-path "$DIR/runtime/lib" \'
-            echo '  --add-modules javafx.controls,javafx.fxml \'
             echo '  --add-opens javafx.graphics/com.sun.javafx.application=ALL-UNNAMED \'
             printf '  -jar "$DIR/%s" "$@"\n' "$JAR_NAME"
           } > "$PACKAGE_DIR/run.sh"
@@ -139,10 +140,12 @@ jobs:
             --input            dist\input `
             --name             iot-dashboard `
             --main-jar         $jarFile.Name `
+            --main-class       com.iot.dashboard.Launcher `
             --type             exe `
             --app-version      $version `
             --dest             dist\output `
-            --java-options     '--add-opens javafx.graphics/com.sun.javafx.application=ALL-UNNAMED'
+            --java-options     '--add-opens javafx.graphics/com.sun.javafx.application=ALL-UNNAMED' `
+            --java-options     '--add-opens javafx.base/com.sun.javafx=ALL-UNNAMED'
 
           $exe = Get-ChildItem dist\output -Filter *.exe | Select-Object -First 1
           if (-not $exe) {
