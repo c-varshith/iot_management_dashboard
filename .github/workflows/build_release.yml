@@ -88,7 +88,7 @@ jobs:
           if-no-files-found: error
 
   # ============================================================
-  # WINDOWS — fat JAR + jpackage installer → .exe
+  # WINDOWS — fat JAR + jpackage app-image → zip (no installer)
   # ============================================================
   windows:
     runs-on: windows-latest
@@ -103,10 +103,6 @@ jobs:
           java-version: ${{ env.JAVA_VERSION }}
           java-package: jdk+fx
 
-      - name: Install WiX Toolset
-        shell: pwsh
-        run: choco install wixtoolset -y --no-progress
-
       - name: Build fat JAR
         run: mvn -B clean package -DskipTests
 
@@ -114,55 +110,53 @@ jobs:
         shell: pwsh
         run: Get-ChildItem target -Filter *.jar | Select-Object Name, Length
 
-      - name: Package Windows exe
+      - name: Package Windows zip
         shell: pwsh
         run: |
           $version = "${{ github.ref_name }}".TrimStart('v')
 
-          # maven-shade-plugin replaces the original JAR in-place — no *-shaded.jar
           $jarFile = Get-ChildItem target -Filter *.jar |
                      Where-Object { $_.Name -notlike 'original-*' } |
                      Select-Object -First 1
           if (-not $jarFile) {
-            Write-Host "ERROR: no fat jar found. Contents of target/:"
             Get-ChildItem target
             throw "Fat jar not found in target directory."
           }
           Write-Host "Using JAR: $($jarFile.FullName)"
 
-          # jpackage needs a clean input dir with only the fat JAR
-          New-Item -ItemType Directory -Force -Path dist\input | Out-Null
-          Copy-Item $jarFile.FullName dist\input\
+          New-Item -ItemType Directory -Force -Path dist\input  | Out-Null
           New-Item -ItemType Directory -Force -Path dist\output | Out-Null
+          Copy-Item $jarFile.FullName dist\input\
 
-          # jpackage bundles the full Liberica runtime (with JavaFX) automatically
+          # app-image = self-contained folder with direct iot-dashboard.exe launcher
+          # No WiX installer, no UAC, no "install to Program Files" — just extract and run
           & jpackage `
-            --input            dist\input `
-            --name             iot-dashboard `
-            --main-jar         $jarFile.Name `
-            --main-class       com.iot.dashboard.Launcher `
-            --type             exe `
-            --app-version      $version `
-            --dest             dist\output `
-            --java-options     '--add-opens javafx.graphics/com.sun.javafx.application=ALL-UNNAMED' `
-            --java-options     '--add-opens javafx.base/com.sun.javafx=ALL-UNNAMED'
+            --input       dist\input `
+            --name        iot-dashboard `
+            --main-jar    $jarFile.Name `
+            --main-class  com.iot.dashboard.Launcher `
+            --type        app-image `
+            --app-version $version `
+            --dest        dist\output `
+            --java-options '--add-opens javafx.graphics/com.sun.javafx.application=ALL-UNNAMED' `
+            --java-options '--add-opens javafx.base/com.sun.javafx=ALL-UNNAMED'
 
-          $exe = Get-ChildItem dist\output -Filter *.exe | Select-Object -First 1
-          if (-not $exe) {
-            Write-Host "ERROR: jpackage did not produce an exe. Contents of dist/output/:"
-            Get-ChildItem dist\output
-            throw "Windows exe was not created by jpackage."
+          $appDir = Get-ChildItem dist\output -Directory | Select-Object -First 1
+          if (-not $appDir) {
+            Get-ChildItem dist\output -Recurse
+            throw "jpackage app-image folder not created."
           }
+          Write-Host "app-image: $($appDir.FullName)"
 
-          $dest = "dist\iot-dashboard-$version.exe"
-          Move-Item $exe.FullName $dest -Force
-          Write-Host "Windows exe created: $dest"
+          $zipName = "dist\iot-dashboard-windows-$version.zip"
+          Compress-Archive -Path $appDir.FullName -DestinationPath $zipName -Force
+          Write-Host "Windows zip: $zipName"
 
       - name: Upload Windows artifact
         uses: actions/upload-artifact@v4
         with:
           name: windows-package
-          path: dist/iot-dashboard-*.exe
+          path: dist/iot-dashboard-windows-*.zip
           if-no-files-found: error
 
   # ============================================================
@@ -200,10 +194,10 @@ jobs:
             ## Release ${{ github.ref_name }}
 
             ### Downloads
-            | Platform | File | Notes |
-            |----------|------|-------|
-            | Windows  | `iot-dashboard-*.exe` | Installer — bundled Java runtime, no install needed |
-            | Linux    | `iot-dashboard-linux.zip` | Extract and run `./run.sh` |
+            | Platform | File | How to run |
+            |----------|------|------------|
+            | Windows  | `iot-dashboard-windows-*.zip` | Extract zip → double-click `iot-dashboard\iot-dashboard.exe` |
+            | Linux    | `iot-dashboard-linux.zip` | Extract zip → run `./run.sh` |
 
             ### First-Time Setup
             1. **Database** — Open Settings inside the app and enter your MySQL credentials, or copy `database.properties.example` to `~/.iot-dashboard/config.properties` and fill in the values.
@@ -213,6 +207,6 @@ jobs:
           fail_on_unmatched_files: true
           files: |
             release-assets/linux/*.zip
-            release-assets/windows/*.exe
+            release-assets/windows/*.zip
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

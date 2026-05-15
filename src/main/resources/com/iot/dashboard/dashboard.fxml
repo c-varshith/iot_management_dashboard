@@ -38,11 +38,11 @@
     <top>
         <HBox styleClass="topbar" alignment="CENTER_LEFT" spacing="16">
             <Label fx:id="titleLabel" text="IoT Smart Energy Dashboard"
-                   styleClass="topbar-title" HBox.hgrow="ALWAYS" />
+                   styleClass="topbar-title" />
 
-            <Label fx:id="clockLabel"    text="--:--:--"  styleClass="topbar-clock" />
-            <Label fx:id="readingCountLabel" text="Readings: 0" styleClass="topbar-readings" />
-            <Label fx:id="alertCountLabel"   text="✅ No Alerts" styleClass="topbar-readings" />
+            <Label fx:id="clockLabel"        text="--:--:--"      styleClass="topbar-clock" />
+            <Label fx:id="readingCountLabel" text="Readings: 0"   styleClass="topbar-readings" />
+            <Label fx:id="alertCountLabel"   text="✅ No Alerts"  styleClass="topbar-readings" />
 
             <Button fx:id="startStopButton"
                     text="⏸ Pause Simulation"
@@ -52,6 +52,10 @@
                     text="📄 Generate Report"
                     onAction="#handleGenerateReport"
                     styleClass="btn-accent" />
+
+            <!-- Spacer — pushes Settings and Logout to the far right -->
+            <Region HBox.hgrow="ALWAYS" />
+
             <Button fx:id="settingsButton"
                     text="⚙ Settings"
                     onAction="#handleSettings"

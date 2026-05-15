@@ -3,7 +3,6 @@
 <?import javafx.geometry.*?>
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
-<?import javafx.scene.text.*?>
 
 <BorderPane xmlns="http://javafx.com/javafx"
             xmlns:fx="http://javafx.com/fxml"
@@ -11,16 +10,17 @@
             prefWidth="500"
             prefHeight="620">
 
+    <!-- Define shared objects before any node references them -->
+    <fx:define>
+        <ToggleGroup fx:id="dhtToggleGroup"/>
+    </fx:define>
+
     <!-- ================================================================
-         HEADER  — title left, Simulation/Real Sensor toggle top-right
+         HEADER — title left, Simulation/Real Sensor toggle top-right
          ================================================================ -->
     <top>
         <VBox style="-fx-background-color: #f5f5f5; -fx-border-color: #ddd; -fx-border-width: 0 0 1 0;">
-            <padding>
-                <Insets top="15" right="20" bottom="15" left="20"/>
-            </padding>
-
-            <!-- Row: title left, mode toggle right -->
+            <padding><Insets top="15" right="20" bottom="15" left="20"/></padding>
             <HBox alignment="CENTER_LEFT" spacing="12">
                 <VBox HBox.hgrow="ALWAYS">
                     <Label text="Application Settings"
@@ -28,10 +28,9 @@
                     <Label text="Configure database and sensor settings"
                            style="-fx-font-size: 11; -fx-text-fill: #666; -fx-padding: 4 0 0 0;"/>
                 </VBox>
-
-                <!-- Simulation / Real Sensor pill toggle — mirrored from dashboard -->
                 <VBox alignment="CENTER" spacing="4">
-                    <Label text="Sensor Mode" style="-fx-font-size: 10; -fx-text-fill: #888; -fx-font-weight: bold;"/>
+                    <Label text="Sensor Mode"
+                           style="-fx-font-size: 10; -fx-text-fill: #888; -fx-font-weight: bold;"/>
                     <ToggleButton fx:id="modeToggleButton"
                                   text="Simulation"
                                   style="-fx-font-size: 11; -fx-padding: 5 14; -fx-cursor: hand;
@@ -50,10 +49,9 @@
         <ScrollPane fitToWidth="true" style="-fx-border: none; -fx-background: transparent;">
             <VBox spacing="20" style="-fx-padding: 20;">
 
-                <!-- ── Database Configuration ─────────────────────────── -->
+                <!-- Database Configuration -->
                 <TitledPane text="Database Configuration" collapsible="false">
                     <VBox spacing="12" style="-fx-padding: 15;">
-
                         <Label text="Database URL:"
                                style="-fx-font-weight: bold; -fx-font-size: 11; -fx-text-fill: #555;"/>
                         <TextField fx:id="dbUrlField"
@@ -64,8 +62,7 @@
 
                         <Label text="Username:"
                                style="-fx-font-weight: bold; -fx-font-size: 11; -fx-text-fill: #555;"/>
-                        <TextField fx:id="dbUsernameField"
-                                   promptText="e.g., root"
+                        <TextField fx:id="dbUsernameField" promptText="e.g., root"
                                    style="-fx-padding: 8;">
                             <VBox.margin><Insets bottom="10"/></VBox.margin>
                         </TextField>
@@ -78,26 +75,23 @@
                             <VBox.margin><Insets bottom="10"/></VBox.margin>
                         </PasswordField>
 
-                        <Label text="⚠ Password is stored in the external config file and applied without editing source files"
+                        <Label text="⚠ Password is stored in the external config file, not in source code"
                                style="-fx-font-size: 10; -fx-text-fill: #ff9800; -fx-font-style: italic;"/>
                     </VBox>
                 </TitledPane>
 
-                <!-- ── Sensor Configuration ───────────────────────────── -->
+                <!-- Sensor Configuration -->
                 <TitledPane text="Sensor Configuration" collapsible="false">
                     <VBox spacing="12" style="-fx-padding: 15;">
 
-                        <!-- DHT Sensor Type row -->
                         <Label text="DHT Sensor Type:"
                                style="-fx-font-weight: bold; -fx-font-size: 11; -fx-text-fill: #555;"/>
 
+                        <!-- DHT22 option -->
                         <HBox spacing="12" alignment="CENTER_LEFT">
-                            <!-- DHT22 radio -->
-                            <RadioButton fx:id="dht22Radio"
-                                         text="DHT22"
-                                         style="-fx-font-size: 12; -fx-font-weight: bold;">
-                                <toggleGroup><fx:reference source="dhtToggleGroup"/></toggleGroup>
-                            </RadioButton>
+                            <RadioButton fx:id="dht22Radio" text="DHT22"
+                                         toggleGroup="$dhtToggleGroup"
+                                         style="-fx-font-size: 12; -fx-font-weight: bold;"/>
                             <VBox>
                                 <Label text="Higher accuracy  ±0.5 °C · ±2–5 % RH"
                                        style="-fx-font-size: 10; -fx-text-fill: #555;"/>
@@ -106,13 +100,11 @@
                             </VBox>
                         </HBox>
 
+                        <!-- DHT11 option -->
                         <HBox spacing="12" alignment="CENTER_LEFT">
-                            <!-- DHT11 radio -->
-                            <RadioButton fx:id="dht11Radio"
-                                         text="DHT11"
-                                         style="-fx-font-size: 12; -fx-font-weight: bold;">
-                                <toggleGroup><fx:reference source="dhtToggleGroup"/></toggleGroup>
-                            </RadioButton>
+                            <RadioButton fx:id="dht11Radio" text="DHT11"
+                                         toggleGroup="$dhtToggleGroup"
+                                         style="-fx-font-size: 12; -fx-font-weight: bold;"/>
                             <VBox>
                                 <Label text="Lower accuracy  ±2 °C · ±5 % RH"
                                        style="-fx-font-size: 10; -fx-text-fill: #555;"/>
@@ -121,17 +113,11 @@
                             </VBox>
                         </HBox>
 
-                        <!-- Hidden ToggleGroup so FXML can reference it -->
-                        <ToggleGroup fx:id="dhtToggleGroup"/>
-
                         <Label text="Only applies in Real Sensor mode — ignored during simulation."
                                style="-fx-font-size: 10; -fx-text-fill: #888; -fx-font-style: italic;"/>
 
-                        <Separator>
-                            <VBox.margin><Insets top="4" bottom="4"/></VBox.margin>
-                        </Separator>
+                        <Separator><VBox.margin><Insets top="4" bottom="4"/></VBox.margin></Separator>
 
-                        <!-- Serial port -->
                         <Label text="Serial Port:"
                                style="-fx-font-weight: bold; -fx-font-size: 11; -fx-text-fill: #555;"/>
                         <TextField fx:id="serialPortField"
@@ -140,11 +126,9 @@
                             <VBox.margin><Insets bottom="10"/></VBox.margin>
                         </TextField>
 
-                        <!-- Baud rate -->
                         <Label text="Baud Rate:"
                                style="-fx-font-weight: bold; -fx-font-size: 11; -fx-text-fill: #555;"/>
-                        <TextField fx:id="baudRateField"
-                                   promptText="9600"
+                        <TextField fx:id="baudRateField" promptText="9600"
                                    style="-fx-padding: 8;">
                             <VBox.margin><Insets bottom="10"/></VBox.margin>
                         </TextField>
@@ -154,12 +138,8 @@
                     </VBox>
                 </TitledPane>
 
-                <!-- Status message -->
-                <Label fx:id="statusLabel"
-                       text=""
-                       wrapText="true"
+                <Label fx:id="statusLabel" text="" wrapText="true"
                        style="-fx-font-size: 11; -fx-text-fill: #4caf50;"/>
-
             </VBox>
         </ScrollPane>
     </center>
@@ -168,19 +148,12 @@
          FOOTER
          ================================================================ -->
     <bottom>
-        <HBox spacing="10"
-              style="-fx-background-color: #f5f5f5; -fx-border-color: #ddd; -fx-border-width: 1 0 0 0;"
-              alignment="CENTER_RIGHT">
-            <padding>
-                <Insets top="15" right="20" bottom="15" left="20"/>
-            </padding>
-
-            <Button fx:id="cancelButton"
-                    text="Cancel"
+        <HBox spacing="10" alignment="CENTER_RIGHT"
+              style="-fx-background-color: #f5f5f5; -fx-border-color: #ddd; -fx-border-width: 1 0 0 0;">
+            <padding><Insets top="15" right="20" bottom="15" left="20"/></padding>
+            <Button fx:id="cancelButton" text="Cancel"
                     style="-fx-padding: 8 20; -fx-font-size: 11;"/>
-
-            <Button fx:id="saveButton"
-                    text="Save &amp; Apply"
+            <Button fx:id="saveButton" text="Save &amp; Apply"
                     style="-fx-padding: 8 20; -fx-font-size: 11; -fx-font-weight: bold;
                            -fx-text-fill: white; -fx-background-color: #4caf50;"/>
         </HBox>
