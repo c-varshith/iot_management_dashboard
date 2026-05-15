@@ -13,13 +13,15 @@ env:
   JAVA_VERSION: "17"
 
 jobs:
+  # ============================================================
+  # LINUX — fat JAR + jlink runtime + run.sh → zip
+  # ============================================================
   linux:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
         uses: actions/checkout@v4
 
-      # Liberica Full JDK includes JavaFX modules — required for jlink to bundle javafx.*
       - name: Set up JDK with JavaFX (Liberica Full)
         uses: actions/setup-java@v4
         with:
@@ -30,14 +32,25 @@ jobs:
       - name: Build fat JAR
         run: mvn -B clean package -DskipTests
 
+      - name: Show target directory contents
+        run: ls -lh target/*.jar
+
       - name: Package Linux zip
         run: |
-          JAR_PATH=$(find target -maxdepth 1 -name '*-shaded.jar' | head -n1)
+          # maven-shade-plugin (without shadedArtifactAttached) replaces the
+          # original JAR in-place — output is iot-dashboard-X.Y.Z.jar, NOT *-shaded.jar
+          JAR_PATH=$(find target -maxdepth 1 -name '*.jar' ! -name 'original-*' | head -n1)
+          if [ -z "$JAR_PATH" ]; then
+            echo "ERROR: no fat jar found in target/"; ls -lh target/; exit 1
+          fi
           JAR_NAME=$(basename "$JAR_PATH")
+          echo "Using JAR: $JAR_PATH"
+
           PACKAGE_DIR=dist/iot-dashboard-linux
           mkdir -p "$PACKAGE_DIR"
 
-          # Bundle a minimal JRE that includes JavaFX modules (Liberica Full provides them)
+          # Bundle a minimal JRE including JavaFX modules
+          # Liberica Full JDK provides the javafx.* jmods; Temurin does NOT
           jlink \
             --module-path "${JAVA_HOME}/jmods" \
             --add-modules java.se,javafx.controls,javafx.fxml,javafx.graphics,javafx.base,jdk.unsupported \
@@ -49,7 +62,7 @@ jobs:
 
           cp "$JAR_PATH" "$PACKAGE_DIR/$JAR_NAME"
 
-          # Launcher script — write without heredoc (<<EOF breaks YAML parsers)
+          # Write launcher without heredoc (<<EOF breaks YAML parsers)
           {
             echo '#!/usr/bin/env sh'
             echo 'DIR="$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)"'
@@ -61,10 +74,10 @@ jobs:
           } > "$PACKAGE_DIR/run.sh"
           chmod +x "$PACKAGE_DIR/run.sh"
 
-          # Bundle the example config so users know where to put their credentials
           cp database.properties.example "$PACKAGE_DIR/database.properties.example"
 
           (cd dist && zip -r iot-dashboard-linux.zip iot-dashboard-linux)
+          echo "Linux zip created: $(du -sh dist/iot-dashboard-linux.zip)"
 
       - name: Upload Linux artifact
         uses: actions/upload-artifact@v4
@@ -73,13 +86,15 @@ jobs:
           path: dist/iot-dashboard-linux.zip
           if-no-files-found: error
 
+  # ============================================================
+  # WINDOWS — fat JAR + jpackage installer → .exe
+  # ============================================================
   windows:
     runs-on: windows-latest
     steps:
       - name: Checkout
         uses: actions/checkout@v4
 
-      # Liberica Full JDK includes JavaFX — jpackage bundles the runtime automatically
       - name: Set up JDK with JavaFX (Liberica Full)
         uses: actions/setup-java@v4
         with:
@@ -94,56 +109,64 @@ jobs:
       - name: Build fat JAR
         run: mvn -B clean package -DskipTests
 
+      - name: Show target directory contents
+        shell: pwsh
+        run: Get-ChildItem target -Filter *.jar | Select-Object Name, Length
+
       - name: Package Windows exe
         shell: pwsh
         run: |
           $version = "${{ github.ref_name }}".TrimStart('v')
-          $jarPath = Get-ChildItem target -Filter *-shaded.jar | Select-Object -First 1
-          if (-not $jarPath) {
-            throw "Shaded jar not found in target directory."
-          }
 
-          $candle = Get-ChildItem "C:\Program Files (x86)","C:\Program Files" -Recurse -Filter candle.exe |
-            Select-Object -First 1
-          if (-not $candle) {
-            throw "WiX Toolset binaries not found after installation."
+          # maven-shade-plugin replaces the original JAR in-place — no *-shaded.jar
+          $jarFile = Get-ChildItem target -Filter *.jar |
+                     Where-Object { $_.Name -notlike 'original-*' } |
+                     Select-Object -First 1
+          if (-not $jarFile) {
+            Write-Host "ERROR: no fat jar found. Contents of target/:"
+            Get-ChildItem target
+            throw "Fat jar not found in target directory."
           }
-          $wixBin = Split-Path $candle.FullName
-          $env:PATH = "$wixBin;$env:PATH"
+          Write-Host "Using JAR: $($jarFile.FullName)"
 
-          New-Item -ItemType Directory -Force -Path dist\raw | Out-Null
+          # jpackage needs a clean input dir with only the fat JAR
+          New-Item -ItemType Directory -Force -Path dist\input | Out-Null
+          Copy-Item $jarFile.FullName dist\input\
+          New-Item -ItemType Directory -Force -Path dist\output | Out-Null
 
           # jpackage bundles the full Liberica runtime (with JavaFX) automatically
-          $jpackageArgs = @(
-            '--input',       'target',
-            '--name',        'iot-dashboard',
-            '--main-jar',    $jarPath.Name,
-            '--type',        'exe',
-            '--app-version', $version,
-            '--dest',        'dist\raw',
-            '--java-options', '--add-opens javafx.graphics/com.sun.javafx.application=ALL-UNNAMED'
-          )
-          & jpackage @jpackageArgs
+          & jpackage `
+            --input            dist\input `
+            --name             iot-dashboard `
+            --main-jar         $jarFile.Name `
+            --type             exe `
+            --app-version      $version `
+            --dest             dist\output `
+            --java-options     '--add-opens javafx.graphics/com.sun.javafx.application=ALL-UNNAMED'
 
-          $exe = Get-ChildItem dist\raw -Filter *.exe | Select-Object -First 1
+          $exe = Get-ChildItem dist\output -Filter *.exe | Select-Object -First 1
           if (-not $exe) {
-            throw "Windows exe was not created."
+            Write-Host "ERROR: jpackage did not produce an exe. Contents of dist/output/:"
+            Get-ChildItem dist\output
+            throw "Windows exe was not created by jpackage."
           }
 
-          Move-Item $exe.FullName "dist\iot-dashboard-$version.exe" -Force
-          Remove-Item dist\raw -Recurse -Force
+          $dest = "dist\iot-dashboard-$version.exe"
+          Move-Item $exe.FullName $dest -Force
+          Write-Host "Windows exe created: $dest"
 
       - name: Upload Windows artifact
         uses: actions/upload-artifact@v4
         with:
           name: windows-package
-          path: dist/*.exe
+          path: dist/iot-dashboard-*.exe
           if-no-files-found: error
 
+  # ============================================================
+  # RELEASE — attach both artifacts to a GitHub Release
+  # ============================================================
   release:
-    needs:
-      - linux
-      - windows
+    needs: [linux, windows]
     runs-on: ubuntu-latest
     if: startsWith(github.ref, 'refs/tags/v')
     steps:
@@ -162,9 +185,8 @@ jobs:
           name: windows-package
           path: release-assets/windows
 
-      - name: Verify release assets
-        run: |
-          find release-assets -maxdepth 3 -type f | sort
+      - name: List release assets
+        run: find release-assets -type f | sort
 
       - name: Publish GitHub Release
         uses: softprops/action-gh-release@v2
@@ -174,18 +196,15 @@ jobs:
           body: |
             ## Release ${{ github.ref_name }}
 
-            ### 📦 Downloads
+            ### Downloads
             | Platform | File | Notes |
             |----------|------|-------|
-            | Windows  | `iot-dashboard-*.exe` | Installer with bundled Java runtime |
-            | Linux    | `iot-dashboard-linux.zip` | Extract and run `run.sh` |
+            | Windows  | `iot-dashboard-*.exe` | Installer — bundled Java runtime, no install needed |
+            | Linux    | `iot-dashboard-linux.zip` | Extract and run `./run.sh` |
 
-            ### ⚙️ First-Time Setup
-            1. **Database** — Copy `database.properties.example` → `database.properties` and fill in your MySQL credentials, **or** open **⚙ Settings** inside the app after launch.
-            2. **Sensor mode** — Defaults to full simulation. Use the dashboard toggle or set `use.real.sensor=true` in your config file to switch to a real Arduino sensor.
-
-            ### Config file location
-            `~/.iot-dashboard/config.properties` (created automatically on first save from Settings).
+            ### First-Time Setup
+            1. **Database** — Open Settings inside the app and enter your MySQL credentials, or copy `database.properties.example` to `~/.iot-dashboard/config.properties` and fill in the values.
+            2. **Sensor mode** — Defaults to Simulation. Open Settings to switch to Real Sensor and select DHT11 or DHT22.
 
             See the [README](https://github.com/${{ github.repository }}/blob/main/README.md) for full setup instructions.
           fail_on_unmatched_files: true
