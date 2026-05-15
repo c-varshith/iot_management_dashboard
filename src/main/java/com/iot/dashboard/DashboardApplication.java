@@ -7,6 +7,9 @@ import javafx.application.Platform;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
+import javafx.scene.control.Alert;
+import javafx.scene.control.ButtonBar;
+import javafx.scene.control.ButtonType;
 import javafx.stage.Stage;
 
 import java.util.logging.Logger;
@@ -154,8 +157,7 @@ public class DashboardApplication extends Application {
         ConfigManager config = ConfigManager.getInstance();
         String configPath    = config.getConfigPath().toString();
 
-        javafx.scene.control.Alert alert = new javafx.scene.control.Alert(
-                javafx.scene.control.Alert.AlertType.ERROR);
+        Alert alert = new Alert(Alert.AlertType.ERROR);
         alert.setTitle("Database Connection Failed");
         alert.setHeaderText("Cannot connect to MySQL");
         alert.setContentText(
