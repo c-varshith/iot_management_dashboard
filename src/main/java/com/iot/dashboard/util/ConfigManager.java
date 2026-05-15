@@ -134,6 +134,57 @@ public class ConfigManager {
     }
 
     // =========================================================================
+    // First-Run Helpers
+    // =========================================================================
+
+    /**
+     * Returns true if an external config file already exists on disk.
+     * Used by DashboardApplication to decide whether to show the first-run wizard.
+     */
+    public boolean isConfigFilePresent() {
+        return Files.exists(configPath);
+    }
+
+    /**
+     * Creates the config directory and writes a starter config.properties
+     * if one does not already exist. Safe to call on every launch — no-op
+     * if the file is already present.
+     *
+     * This guarantees users can always find the file at the documented path
+     * even before they open Settings for the first time.
+     */
+    public synchronized void createConfigIfMissing() throws IOException {
+        if (Files.exists(configPath)) return;
+
+        Files.createDirectories(configPath.getParent());
+
+        String template =
+            "# IoT Dashboard — External Configuration\n" +
+            "# Edit this file to set your MySQL credentials, then restart the app.\n" +
+            "#\n" +
+            "# Windows path: %USERPROFILE%\\.iot-dashboard\\config.properties\n" +
+            "# Linux path:   ~/.iot-dashboard/config.properties\n" +
+            "#\n" +
+            "# ---------------------------------------------------------------\n" +
+            "db.url=jdbc:mysql://localhost:3306/iot_dashboard" +
+                "?useSSL=false&allowPublicKeyRetrieval=true" +
+                "&serverTimezone=UTC&rewriteBatchedStatements=true\n" +
+            "db.username=root\n" +
+            "db.password=\n" +
+            "\n" +
+            "# Sensor mode (false = full simulation, true = real Arduino sensor)\n" +
+            "use.real.sensor=false\n" +
+            "serial.port=/dev/ttyUSB0\n" +
+            "baud.rate=9600\n" +
+            "dht.type=DHT22\n";
+
+        try (OutputStream out = Files.newOutputStream(configPath)) {
+            out.write(template.getBytes(java.nio.charset.StandardCharsets.UTF_8));
+        }
+        LOGGER.info("Created starter config at: " + configPath);
+    }
+
+    // =========================================================================
     // Save Configuration
     // =========================================================================
 

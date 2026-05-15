@@ -34,28 +34,72 @@ public class DashboardApplication extends Application {
     public void start(Stage stage) {
         primaryStage = stage;
 
-        // Graceful shutdown hook — closes DB pool and running threads on JVM exit
         stage.setOnCloseRequest(event -> {
             LOGGER.info("Application window closed — initiating shutdown.");
             Platform.exit();
         });
 
-        // === Step 1: Database Setup ===
-        // Run synchronously on startup before showing the UI.
-        // This ensures tables exist and the admin user is seeded before any login attempt.
+        ConfigManager config = ConfigManager.getInstance();
+
+        // === Step 1: Create config directory + starter file if missing ===
+        // This guarantees users on Windows/Linux can always find the file
+        // at %USERPROFILE%\.iot-dashboard\config.properties the moment they
+        // launch the app for the first time.
+        try {
+            config.createConfigIfMissing();
+        } catch (Exception e) {
+            LOGGER.warning("Could not create starter config: " + e.getMessage());
+        }
+
+        // === Step 2: First-Run check ===
+        // If the DB password is blank (embedded default, no external config set),
+        // show the setup wizard so the user can enter credentials before we attempt
+        // any connection. This avoids the silent SQL crash on first launch.
+        boolean passwordBlank = config.getDatabasePassword().isBlank();
+        if (passwordBlank) {
+            try {
+                showFirstRunSetup();
+            } catch (Exception e) {
+                LOGGER.severe("Failed to load first-run setup screen: " + e.getMessage());
+                Platform.exit();
+            }
+            return; // First-run wizard handles DB setup + login transition
+        }
+
+        // === Step 3: Normal launch — DB setup then login ===
         boolean dbReady = DatabaseSetup.runSetup();
         if (!dbReady) {
             showDatabaseErrorScreen();
             return;
         }
 
-        // === Step 2: Show Login Screen ===
         try {
             showLoginScreen();
         } catch (Exception e) {
             LOGGER.severe("Failed to load login screen: " + e.getMessage());
             Platform.exit();
         }
+    }
+
+    /**
+     * Shows the first-run setup dialog where the user enters DB credentials.
+     * After saving, the wizard transitions directly to the login screen.
+     */
+    public static void showFirstRunSetup() throws Exception {
+        javafx.fxml.FXMLLoader loader = new javafx.fxml.FXMLLoader(
+                DashboardApplication.class.getResource("/com/iot/dashboard/firstrun.fxml"));
+        javafx.scene.Parent root = loader.load();
+
+        javafx.scene.Scene scene = new javafx.scene.Scene(root, 480, 420);
+        scene.getStylesheets().add(
+                DashboardApplication.class.getResource("/com/iot/dashboard/styles.css")
+                        .toExternalForm());
+
+        primaryStage.setTitle("IoT Dashboard — First Time Setup");
+        primaryStage.setScene(scene);
+        primaryStage.setResizable(false);
+        primaryStage.centerOnScreen();
+        primaryStage.show();
     }
 
     /**
@@ -107,21 +151,41 @@ public class DashboardApplication extends Application {
      * Prompts user to check database.properties.
      */
     private void showDatabaseErrorScreen() {
+        ConfigManager config = ConfigManager.getInstance();
+        String configPath    = config.getConfigPath().toString();
+
         javafx.scene.control.Alert alert = new javafx.scene.control.Alert(
                 javafx.scene.control.Alert.AlertType.ERROR);
         alert.setTitle("Database Connection Failed");
         alert.setHeaderText("Cannot connect to MySQL");
         alert.setContentText(
                 "The application could not connect to the MySQL database.\n\n" +
-                "Please check:\n" +
-                "  1. MySQL server is running (port 3306)\n" +
-                "  2. The external config file has correct credentials\n" +
-                "     " + ConfigManager.getInstance().getConfigPath() + "\n" +
-                "  3. The 'iot_dashboard' database has been created\n" +
-                "     (run setup.sql in MySQL Workbench)\n\n" +
-                "Default config: localhost:3306 / root / your_password_here");
-        alert.showAndWait();
-        Platform.exit();
+                "Edit your config file and set the correct password:\n" +
+                "  " + configPath + "\n\n" +
+                "Make sure:\n" +
+                "  • MySQL is running on port 3306\n" +
+                "  • The 'iot_dashboard' database exists\n" +
+                "  • db.username and db.password are correct\n\n" +
+                "Then restart the application.");
+
+        ButtonType setupAgain = new ButtonType("Open Setup Wizard");
+        ButtonType exit       = new ButtonType("Exit", ButtonBar.ButtonData.CANCEL_CLOSE);
+        alert.getButtonTypes().setAll(setupAgain, exit);
+
+        alert.showAndWait().ifPresent(choice -> {
+            if (choice == setupAgain) {
+                try {
+                    // Clear password so first-run check triggers again
+                    config.setDatabasePassword("");
+                    showFirstRunSetup();
+                } catch (Exception ex) {
+                    LOGGER.severe("Failed to reopen setup wizard: " + ex.getMessage());
+                    Platform.exit();
+                }
+            } else {
+                Platform.exit();
+            }
+        });
     }
 
     /**

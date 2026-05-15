@@ -489,6 +489,7 @@ public class DashboardController implements Initializable {
                 "Clear Old Data",
                 "This will:\n" +
                 "  • Clear the on-screen readings table\n" +
+                "  • Clear all chart data\n" +
                 "  • Delete all DB readings older than 24 hours\n\n" +
                 "Recent readings are kept. Continue?");
 
@@ -510,9 +511,23 @@ public class DashboardController implements Initializable {
         // Clear the UI table
         tableData.clear();
 
-        updateStatus("Deleted " + deleted + " old DB reading(s). UI table cleared.");
+        // Clear all chart data and reset X-axis counters
+        for (SensorType type : SensorType.values()) {
+            XYChart.Series<Number, Number> series = chartSeriesMap.get(type);
+            if (series != null) {
+                series.getData().clear();
+            }
+            // Reset the X-axis counter for this sensor type
+            AtomicLong counter = xCounterMap.get(type);
+            if (counter != null) {
+                counter.set(0);
+            }
+        }
+
+        updateStatus("Deleted " + deleted + " old DB reading(s). UI table and charts cleared.");
         AlertUtil.showInfo("Data Cleared",
-                "Deleted " + deleted + " sensor reading(s) older than 24 h from the database.\n\n" +
+                "Deleted " + deleted + " sensor reading(s) older than 24 h from the database.\n" +
+                "All chart data has been cleared.\n\n" +
                 "Temperature stats (last 24 h):\n" + tempStats);
     }
 

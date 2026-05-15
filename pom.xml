@@ -17,7 +17,7 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <javafx.version>17.0.19</javafx.version>
         <hikaricp.version>5.1.0</hikaricp.version>
-        <mysql.connector.version>8.1.0</mysql.connector.version>
+        <mysql.connector.version>8.4.0</mysql.connector.version>
         <itext.version>7.2.5</itext.version>
         <jbcrypt.version>0.4</jbcrypt.version>
         <junit.version>5.10.1</junit.version>

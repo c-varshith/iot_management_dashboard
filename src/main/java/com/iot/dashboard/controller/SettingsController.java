@@ -6,6 +6,7 @@ import com.iot.dashboard.database.DatabaseManager;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
 import javafx.scene.control.*;
+import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
 
 import java.util.Properties;
@@ -38,9 +39,13 @@ public class SettingsController implements Initializable {
     @FXML private ToggleGroup   dhtToggleGroup;
     @FXML private RadioButton   dht22Radio;
     @FXML private RadioButton   dht11Radio;
+    @FXML private VBox          dht22DescriptionBox;
+    @FXML private VBox          dht11DescriptionBox;
 
     // ── Serial ───────────────────────────────────────────────────────────────
+    @FXML private Label         serialPortLabel;
     @FXML private TextField     serialPortField;
+    @FXML private Label         baudRateLabel;
     @FXML private TextField     baudRateField;
 
     // ── Footer ───────────────────────────────────────────────────────────────
@@ -79,6 +84,7 @@ public class SettingsController implements Initializable {
         boolean useReal = config.isUseRealSensor();
         modeToggleButton.setSelected(useReal);
         syncModeToggleLabel(useReal);
+        updateRealSensorFieldsState(useReal);
 
         // DHT type
         if ("DHT11".equals(config.getDhtType())) {
@@ -101,6 +107,7 @@ public class SettingsController implements Initializable {
         // Mode toggle label update (visual only — actual save happens on Save & Apply)
         modeToggleButton.selectedProperty().addListener((obs, oldVal, newVal) -> {
             syncModeToggleLabel(newVal);
+            updateRealSensorFieldsState(newVal);
             clearStatus();
         });
 
@@ -130,6 +137,54 @@ public class SettingsController implements Initializable {
                 "-fx-border-color: #0ea5e9; -fx-border-width: 1.5;" +
                 "-fx-background-color: transparent; -fx-text-fill: #0ea5e9;"
             );
+        }
+    }
+
+    /**
+     * Enable/disable real sensor settings based on mode.
+     * When in simulation mode (useReal = false), these fields are disabled and greyed out.
+     */
+    private void updateRealSensorFieldsState(boolean useReal) {
+        // Serial port and baud rate fields
+        serialPortField.setDisable(!useReal);
+        baudRateField.setDisable(!useReal);
+
+        // DHT sensor type controls
+        dht22Radio.setDisable(!useReal);
+        dht11Radio.setDisable(!useReal);
+
+        if (useReal) {
+            // Real mode: enable fields with normal text color
+            serialPortLabel.setStyle("-fx-font-weight: bold; -fx-font-size: 12; -fx-text-fill: #333;");
+            baudRateLabel.setStyle("-fx-font-weight: bold; -fx-font-size: 12; -fx-text-fill: #333;");
+            serialPortField.setStyle("-fx-padding: 10; -fx-font-size: 11; -fx-text-fill: #333;");
+            baudRateField.setStyle("-fx-padding: 10; -fx-font-size: 11; -fx-text-fill: #333;");
+
+            // DHT sensor type
+            dht22Radio.setStyle("-fx-font-size: 12; -fx-font-weight: bold; -fx-text-fill: #333;");
+            dht11Radio.setStyle("-fx-font-size: 12; -fx-font-weight: bold; -fx-text-fill: #333;");
+            for (javafx.scene.Node node : dht22DescriptionBox.getChildren()) {
+                ((javafx.scene.control.Label) node).setStyle("-fx-font-size: 11; -fx-text-fill: #555;");
+            }
+            for (javafx.scene.Node node : dht11DescriptionBox.getChildren()) {
+                ((javafx.scene.control.Label) node).setStyle("-fx-font-size: 11; -fx-text-fill: #555;");
+            }
+        } else {
+            // Simulation mode: disable and grey out fields
+            serialPortLabel.setStyle("-fx-font-weight: bold; -fx-font-size: 12; -fx-text-fill: #bbb;");
+            baudRateLabel.setStyle("-fx-font-weight: bold; -fx-font-size: 12; -fx-text-fill: #bbb;");
+            serialPortField.setStyle("-fx-padding: 10; -fx-font-size: 11; -fx-text-fill: #999; -fx-control-inner-background: #f0f0f0;");
+            baudRateField.setStyle("-fx-padding: 10; -fx-font-size: 11; -fx-text-fill: #999; -fx-control-inner-background: #f0f0f0;");
+
+            // DHT sensor type
+            dht22Radio.setStyle("-fx-font-size: 12; -fx-font-weight: bold; -fx-text-fill: #ccc;");
+            dht11Radio.setStyle("-fx-font-size: 12; -fx-font-weight: bold; -fx-text-fill: #ccc;");
+            for (javafx.scene.Node node : dht22DescriptionBox.getChildren()) {
+                ((javafx.scene.control.Label) node).setStyle("-fx-font-size: 11; -fx-text-fill: #999;");
+            }
+            for (javafx.scene.Node node : dht11DescriptionBox.getChildren()) {
+                ((javafx.scene.control.Label) node).setStyle("-fx-font-size: 11; -fx-text-fill: #999;");
+            }
         }
     }
 

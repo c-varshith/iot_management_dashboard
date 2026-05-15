@@ -88,7 +88,11 @@ jobs:
           if-no-files-found: error
 
   # ============================================================
-  # WINDOWS — fat JAR + jpackage app-image → zip (no installer)
+  # WINDOWS — fat JAR + jpackage WiX installer → .exe
+  #   • Installs to Program Files
+  #   • Creates Desktop shortcut
+  #   • Creates Start Menu entry under "IoT Dashboard"
+  #   • Bundles Liberica JRE+JavaFX — no Java install required
   # ============================================================
   windows:
     runs-on: windows-latest
@@ -103,6 +107,10 @@ jobs:
           java-version: ${{ env.JAVA_VERSION }}
           java-package: jdk+fx
 
+      - name: Install WiX Toolset
+        shell: pwsh
+        run: choco install wixtoolset -y --no-progress
+
       - name: Build fat JAR
         run: mvn -B clean package -DskipTests
 
@@ -110,7 +118,7 @@ jobs:
         shell: pwsh
         run: Get-ChildItem target -Filter *.jar | Select-Object Name, Length
 
-      - name: Package Windows zip
+      - name: Package Windows installer
         shell: pwsh
         run: |
           $version = "${{ github.ref_name }}".TrimStart('v')
@@ -124,39 +132,54 @@ jobs:
           }
           Write-Host "Using JAR: $($jarFile.FullName)"
 
+          # Ensure WiX binaries are on PATH
+          $candle = Get-ChildItem "C:\Program Files (x86)", "C:\Program Files" `
+                      -Recurse -Filter candle.exe -ErrorAction SilentlyContinue |
+                      Select-Object -First 1
+          if ($candle) {
+            $env:PATH = "$(Split-Path $candle.FullName);$env:PATH"
+            Write-Host "WiX found: $(Split-Path $candle.FullName)"
+          }
+
           New-Item -ItemType Directory -Force -Path dist\input  | Out-Null
           New-Item -ItemType Directory -Force -Path dist\output | Out-Null
           Copy-Item $jarFile.FullName dist\input\
 
-          # app-image = self-contained folder with direct iot-dashboard.exe launcher
-          # No WiX installer, no UAC, no "install to Program Files" — just extract and run
+          $iconPath = (Resolve-Path "assets\icon.ico").Path
+
           & jpackage `
-            --input       dist\input `
-            --name        iot-dashboard `
-            --main-jar    $jarFile.Name `
-            --main-class  com.iot.dashboard.Launcher `
-            --type        app-image `
-            --app-version $version `
-            --dest        dist\output `
-            --java-options '--add-opens javafx.graphics/com.sun.javafx.application=ALL-UNNAMED' `
-            --java-options '--add-opens javafx.base/com.sun.javafx=ALL-UNNAMED'
+            --input           dist\input `
+            --name            "IoT Dashboard" `
+            --main-jar        $jarFile.Name `
+            --main-class      com.iot.dashboard.Launcher `
+            --type            exe `
+            --app-version     $version `
+            --dest            dist\output `
+            --icon            $iconPath `
+            --win-shortcut `
+            --win-menu `
+            --win-menu-group  "IoT Dashboard" `
+            --win-dir-chooser `
+            --description     "IoT Smart Energy Management Dashboard" `
+            --vendor          "IoT Dashboard" `
+            --java-options    '--add-opens javafx.graphics/com.sun.javafx.application=ALL-UNNAMED' `
+            --java-options    '--add-opens javafx.base/com.sun.javafx=ALL-UNNAMED'
 
-          $appDir = Get-ChildItem dist\output -Directory | Select-Object -First 1
-          if (-not $appDir) {
+          $exe = Get-ChildItem dist\output -Filter *.exe | Select-Object -First 1
+          if (-not $exe) {
             Get-ChildItem dist\output -Recurse
-            throw "jpackage app-image folder not created."
+            throw "jpackage did not produce an exe."
           }
-          Write-Host "app-image: $($appDir.FullName)"
 
-          $zipName = "dist\iot-dashboard-windows-$version.zip"
-          Compress-Archive -Path $appDir.FullName -DestinationPath $zipName -Force
-          Write-Host "Windows zip: $zipName"
+          $dest = "dist\iot-dashboard-$version.exe"
+          Move-Item $exe.FullName $dest -Force
+          Write-Host "Installer created: $dest ($('{0:N1} MB' -f ($([System.IO.FileInfo]$dest).Length/1MB)))"
 
       - name: Upload Windows artifact
         uses: actions/upload-artifact@v4
         with:
           name: windows-package
-          path: dist/iot-dashboard-windows-*.zip
+          path: dist/iot-dashboard-*.exe
           if-no-files-found: error
 
   # ============================================================
@@ -194,19 +217,19 @@ jobs:
             ## Release ${{ github.ref_name }}
 
             ### Downloads
-            | Platform | File | How to run |
-            |----------|------|------------|
-            | Windows  | `iot-dashboard-windows-*.zip` | Extract zip → double-click `iot-dashboard\iot-dashboard.exe` |
-            | Linux    | `iot-dashboard-linux.zip` | Extract zip → run `./run.sh` |
+            | Platform | File | How to install |
+            |----------|------|----------------|
+            | Windows  | `iot-dashboard-*.exe` | Run the installer — creates Desktop shortcut + Start Menu entry |
+            | Linux    | `iot-dashboard-linux.zip` | Extract → run `./run.sh` |
 
             ### First-Time Setup
-            1. **Database** — Open Settings inside the app and enter your MySQL credentials, or copy `database.properties.example` to `~/.iot-dashboard/config.properties` and fill in the values.
+            1. **Database** — A setup wizard appears on first launch to enter your MySQL credentials.
             2. **Sensor mode** — Defaults to Simulation. Open Settings to switch to Real Sensor and select DHT11 or DHT22.
 
             See the [README](https://github.com/${{ github.repository }}/blob/main/README.md) for full setup instructions.
           fail_on_unmatched_files: true
           files: |
             release-assets/linux/*.zip
-            release-assets/windows/*.zip
+            release-assets/windows/*.exe
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
