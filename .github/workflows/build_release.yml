@@ -19,13 +19,15 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Set up JDK
+      # Liberica Full JDK includes JavaFX modules — required for jlink to bundle javafx.*
+      - name: Set up JDK with JavaFX (Liberica Full)
         uses: actions/setup-java@v4
         with:
-          distribution: temurin
+          distribution: liberica
           java-version: ${{ env.JAVA_VERSION }}
+          java-package: jdk+fx
 
-      - name: Build
+      - name: Build fat JAR
         run: mvn -B clean package -DskipTests
 
       - name: Package Linux zip
@@ -34,20 +36,34 @@ jobs:
           JAR_NAME=$(basename "$JAR_PATH")
           PACKAGE_DIR=dist/iot-dashboard-linux
           mkdir -p "$PACKAGE_DIR"
+
+          # Bundle a minimal JRE that includes JavaFX modules (Liberica Full provides them)
           jlink \
-            --add-modules java.se \
+            --module-path "${JAVA_HOME}/jmods" \
+            --add-modules java.se,javafx.controls,javafx.fxml,javafx.graphics,javafx.base,jdk.unsupported \
             --output "$PACKAGE_DIR/runtime" \
             --strip-debug \
             --no-header-files \
             --no-man-pages \
             --compress=2
+
           cp "$JAR_PATH" "$PACKAGE_DIR/$JAR_NAME"
-          cat > "$PACKAGE_DIR/run.sh" <<EOF
-#!/usr/bin/env sh
-DIR="\$(CDPATH= cd -- "\$(dirname -- "\$0")" && pwd)"
-exec "\$DIR/runtime/bin/java" -jar "\$DIR/$JAR_NAME" "\$@"
-EOF
+
+          # Launcher script — write without heredoc (<<EOF breaks YAML parsers)
+          {
+            echo '#!/usr/bin/env sh'
+            echo 'DIR="$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)"'
+            echo 'exec "$DIR/runtime/bin/java" \'
+            echo '  --module-path "$DIR/runtime/lib" \'
+            echo '  --add-modules javafx.controls,javafx.fxml \'
+            echo '  --add-opens javafx.graphics/com.sun.javafx.application=ALL-UNNAMED \'
+            printf '  -jar "$DIR/%s" "$@"\n' "$JAR_NAME"
+          } > "$PACKAGE_DIR/run.sh"
           chmod +x "$PACKAGE_DIR/run.sh"
+
+          # Bundle the example config so users know where to put their credentials
+          cp database.properties.example "$PACKAGE_DIR/database.properties.example"
+
           (cd dist && zip -r iot-dashboard-linux.zip iot-dashboard-linux)
 
       - name: Upload Linux artifact
@@ -63,17 +79,19 @@ EOF
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Set up JDK
+      # Liberica Full JDK includes JavaFX — jpackage bundles the runtime automatically
+      - name: Set up JDK with JavaFX (Liberica Full)
         uses: actions/setup-java@v4
         with:
-          distribution: temurin
+          distribution: liberica
           java-version: ${{ env.JAVA_VERSION }}
+          java-package: jdk+fx
 
       - name: Install WiX Toolset
         shell: pwsh
         run: choco install wixtoolset -y --no-progress
 
-      - name: Build
+      - name: Build fat JAR
         run: mvn -B clean package -DskipTests
 
       - name: Package Windows exe
@@ -94,12 +112,16 @@ EOF
           $env:PATH = "$wixBin;$env:PATH"
 
           New-Item -ItemType Directory -Force -Path dist\raw | Out-Null
+
+          # jpackage bundles the full Liberica runtime (with JavaFX) automatically
           $jpackageArgs = @(
-            '--input', 'target',
-            '--name', 'iot-dashboard',
-            '--main-jar', $jarPath.Name,
-            '--type', 'exe',
-            '--dest', 'dist\raw'
+            '--input',       'target',
+            '--name',        'iot-dashboard',
+            '--main-jar',    $jarPath.Name,
+            '--type',        'exe',
+            '--app-version', $version,
+            '--dest',        'dist\raw',
+            '--java-options', '--add-opens javafx.graphics/com.sun.javafx.application=ALL-UNNAMED'
           )
           & jpackage @jpackageArgs
 
@@ -125,6 +147,9 @@ EOF
     runs-on: ubuntu-latest
     if: startsWith(github.ref, 'refs/tags/v')
     steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
       - name: Download Linux artifact
         uses: actions/download-artifact@v4
         with:
@@ -141,11 +166,28 @@ EOF
         run: |
           find release-assets -maxdepth 3 -type f | sort
 
-      - name: Publish release assets
+      - name: Publish GitHub Release
         uses: softprops/action-gh-release@v2
         with:
           tag_name: ${{ github.ref_name }}
-          name: ${{ github.ref_name }}
+          name: Release ${{ github.ref_name }}
+          body: |
+            ## Release ${{ github.ref_name }}
+
+            ### 📦 Downloads
+            | Platform | File | Notes |
+            |----------|------|-------|
+            | Windows  | `iot-dashboard-*.exe` | Installer with bundled Java runtime |
+            | Linux    | `iot-dashboard-linux.zip` | Extract and run `run.sh` |
+
+            ### ⚙️ First-Time Setup
+            1. **Database** — Copy `database.properties.example` → `database.properties` and fill in your MySQL credentials, **or** open **⚙ Settings** inside the app after launch.
+            2. **Sensor mode** — Defaults to full simulation. Use the dashboard toggle or set `use.real.sensor=true` in your config file to switch to a real Arduino sensor.
+
+            ### Config file location
+            `~/.iot-dashboard/config.properties` (created automatically on first save from Settings).
+
+            See the [README](https://github.com/${{ github.repository }}/blob/main/README.md) for full setup instructions.
           fail_on_unmatched_files: true
           files: |
             release-assets/linux/*.zip
