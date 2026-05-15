@@ -511,6 +511,14 @@ public class DashboardController implements Initializable {
         // Clear the UI table
         tableData.clear();
 
+        // Force TableView to recalculate column widths/layout to avoid
+        // a stray white column appearing after maximize/unmaximize.
+        Platform.runLater(() -> {
+            dataTable.setColumnResizePolicy(TableView.UNCONSTRAINED_RESIZE_POLICY);
+            dataTable.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY);
+            dataTable.refresh();
+        });
+
         // Clear all chart data and reset X-axis counters
         for (SensorType type : SensorType.values()) {
             XYChart.Series<Number, Number> series = chartSeriesMap.get(type);

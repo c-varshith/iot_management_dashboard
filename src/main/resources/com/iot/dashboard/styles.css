@@ -205,18 +205,19 @@
 
 /* ─── BUTTONS ─────────────────────────────────────────────── */
 .btn-secondary {
-    -fx-background-color: #21262D;
+    -fx-background-color: linear-gradient(#2B3238, #24282C);
     -fx-text-fill: #E6EDF3;
-    -fx-border-color: #30363D;
+    -fx-border-color: #39424A;
     -fx-border-width: 1;
     -fx-border-radius: 8;
     -fx-background-radius: 8;
-    -fx-padding: 7 14;
+    -fx-padding: 8 16;
     -fx-cursor: hand;
     -fx-font-size: 12px;
+    -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.35), 6, 0, 0, 2);
 }
 .btn-secondary:hover {
-    -fx-background-color: #2D333B;
+    -fx-background-color: linear-gradient(#31373D, #2A3035);
     -fx-border-color: #00B4D8;
 }
 
@@ -229,24 +230,26 @@
     -fx-padding: 7 14;
     -fx-cursor: hand;
     -fx-font-size: 12px;
+    -fx-effect: dropshadow(gaussian, rgba(0,180,216,0.18), 8, 0, 0, 2);
 }
 .btn-accent:hover {
     -fx-background-color: #48CAE4;
 }
 
 .btn-danger {
-    -fx-background-color: transparent;
-    -fx-text-fill: #F78166;
-    -fx-border-color: #F78166;
-    -fx-border-width: 1;
+    -fx-background-color: #F85A4B;
+    -fx-text-fill: #FFFFFF;
+    -fx-border-color: transparent;
+    -fx-border-width: 0;
     -fx-border-radius: 8;
     -fx-background-radius: 8;
     -fx-padding: 7 14;
     -fx-cursor: hand;
     -fx-font-size: 12px;
+    -fx-effect: dropshadow(gaussian, rgba(248,90,75,0.12), 6, 0, 0, 2);
 }
 .btn-danger:hover {
-    -fx-background-color: rgba(247,129,102,0.12);
+    -fx-background-color: #E34A3B;
 }
 
 .btn-mode {
@@ -271,19 +274,20 @@
 }
 
 .btn-subtle {
-    -fx-background-color: #21262D;
-    -fx-text-fill: #C9D1D9;
-    -fx-border-color: #30363D;
+    -fx-background-color: #23272C;
+    -fx-text-fill: #D9E6EF;
+    -fx-border-color: #2F3940;
     -fx-border-width: 1;
     -fx-border-radius: 6;
     -fx-background-radius: 6;
-    -fx-padding: 4 10;
+    -fx-padding: 5 12;
     -fx-cursor: hand;
     -fx-font-size: 11px;
 }
 .btn-subtle:hover {
-    -fx-text-fill: #E6EDF3;
+    -fx-text-fill: #FFFFFF;
     -fx-border-color: #7D8590;
+    -fx-background-color: #2B3136;
 }
 
 /* ─── METRIC SUMMARY CARDS ────────────────────────────────── */
