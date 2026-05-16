@@ -4,158 +4,165 @@
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
 
+<!--
+    settings.fxml — Application Settings screen
+    Controller: com.iot.dashboard.controller.SettingsController
+-->
 <BorderPane xmlns="http://javafx.com/javafx"
             xmlns:fx="http://javafx.com/fxml"
             fx:controller="com.iot.dashboard.controller.SettingsController"
-            prefWidth="500"
-            prefHeight="620">
+            prefWidth="500" prefHeight="620"
+            styleClass="panel-root">
 
-    <!-- Define shared objects before any node references them -->
+    <!-- Define toggle group -->
     <fx:define>
         <ToggleGroup fx:id="dhtToggleGroup"/>
     </fx:define>
 
-    <!-- ================================================================
-         HEADER — title left, Simulation/Real Sensor toggle top-right
-         ================================================================ -->
+    <!-- ── HEADER ─────────────────────────────────────────── -->
     <top>
-        <VBox style="-fx-background-color: #f5f5f5; -fx-border-color: #ddd; -fx-border-width: 0 0 1 0;">
-            <padding><Insets top="15" right="20" bottom="15" left="20"/></padding>
-            <HBox alignment="CENTER_LEFT" spacing="12">
-                <VBox HBox.hgrow="ALWAYS">
-                    <Label text="Application Settings"
-                           style="-fx-font-size: 18; -fx-font-weight: bold; -fx-text-fill: #333;"/>
-                    <Label text="Configure database and sensor settings"
-                           style="-fx-font-size: 11; -fx-text-fill: #666; -fx-padding: 4 0 0 0;"/>
+        <VBox styleClass="panel-header" spacing="0">
+            <HBox alignment="CENTER_LEFT" spacing="0">
+                <!-- Title block -->
+                <VBox HBox.hgrow="ALWAYS" spacing="3">
+                    <Label text="Application Settings" styleClass="panel-title" />
+                    <Label text="Configure database connection and sensor settings"
+                           styleClass="panel-subtitle" />
                 </VBox>
-                <VBox alignment="CENTER" spacing="4">
-                    <Label text="Sensor Mode"
-                           style="-fx-font-size: 11; -fx-text-fill: #333; -fx-font-weight: bold;"/>
+                <!-- Sensor mode toggle -->
+                <VBox alignment="CENTER" spacing="5">
+                    <Label text="SENSOR MODE"
+                           style="-fx-font-size: 10px; -fx-font-weight: bold; -fx-text-fill: #4A5568;" />
                     <ToggleButton fx:id="modeToggleButton"
                                   text="Simulation"
-                                  style="-fx-font-size: 12; -fx-padding: 6 16; -fx-cursor: hand;
-                                         -fx-background-radius: 20; -fx-border-radius: 20;
-                                         -fx-border-color: #0ea5e9; -fx-border-width: 2;
-                                         -fx-background-color: transparent; -fx-text-fill: #0ea5e9;"/>
+                                  styleClass="toggle-btn-panel" />
                 </VBox>
             </HBox>
         </VBox>
     </top>
 
-    <!-- ================================================================
-         CONTENT
-         ================================================================ -->
+    <!-- ── CONTENT ────────────────────────────────────────── -->
     <center>
-        <ScrollPane fitToWidth="true" style="-fx-border: none; -fx-background: transparent;">
-            <VBox spacing="20" style="-fx-padding: 20;">
+        <ScrollPane fitToWidth="true"
+                    style="-fx-background-color: transparent; -fx-border-color: transparent; -fx-background: transparent;">
+            <VBox spacing="16" style="-fx-padding: 20;">
 
                 <!-- Database Configuration -->
                 <TitledPane text="Database Configuration" collapsible="false">
-                    <VBox spacing="12" style="-fx-padding: 15;">
-                        <Label text="Database URL:"
-                               style="-fx-font-weight: bold; -fx-font-size: 12; -fx-text-fill: #333;"/>
-                        <TextField fx:id="dbUrlField"
-                                   promptText="jdbc:mysql://localhost:3306/iot_dashboard?..."
-                                   style="-fx-padding: 10; -fx-font-family: 'Courier New'; -fx-font-size: 11; -fx-text-fill: #333;">
-                            <VBox.margin><Insets bottom="10"/></VBox.margin>
-                        </TextField>
+                    <VBox spacing="0">
 
-                        <Label text="Username:"
-                               style="-fx-font-weight: bold; -fx-font-size: 12; -fx-text-fill: #333;"/>
-                        <TextField fx:id="dbUsernameField" promptText="e.g., root"
-                                   style="-fx-padding: 10; -fx-font-size: 11; -fx-text-fill: #333;">
-                            <VBox.margin><Insets bottom="10"/></VBox.margin>
-                        </TextField>
+                        <VBox spacing="5">
+                            <Label text="DATABASE URL" styleClass="panel-field-label" />
+                            <TextField fx:id="dbUrlField"
+                                       promptText="jdbc:mysql://localhost:3306/iot_dashboard?..."
+                                       styleClass="panel-field, panel-field-mono">
+                                <VBox.margin><Insets bottom="10"/></VBox.margin>
+                            </TextField>
+                        </VBox>
 
-                        <Label text="Password:"
-                               style="-fx-font-weight: bold; -fx-font-size: 12; -fx-text-fill: #333;"/>
-                        <PasswordField fx:id="dbPasswordField"
-                                       promptText="Enter your MySQL password"
-                                       style="-fx-padding: 10; -fx-font-size: 11; -fx-text-fill: #333;">
-                            <VBox.margin><Insets bottom="10"/></VBox.margin>
-                        </PasswordField>
+                        <VBox spacing="5">
+                            <Label text="USERNAME" styleClass="panel-field-label" />
+                            <TextField fx:id="dbUsernameField"
+                                       promptText="e.g., root"
+                                       styleClass="panel-field">
+                                <VBox.margin><Insets bottom="10"/></VBox.margin>
+                            </TextField>
+                        </VBox>
 
-                        <Label text="⚠ Password is stored in the external config file, not in source code"
-                               style="-fx-font-size: 11; -fx-text-fill: #ff9800; -fx-font-style: italic;"/>
+                        <VBox spacing="5">
+                            <Label text="PASSWORD" styleClass="panel-field-label" />
+                            <PasswordField fx:id="dbPasswordField"
+                                           promptText="Enter your MySQL password"
+                                           styleClass="panel-field">
+                                <VBox.margin><Insets bottom="10"/></VBox.margin>
+                            </PasswordField>
+                        </VBox>
+
+                        <Label text="⚠  Password is stored in the external config file — not in source code."
+                               styleClass="panel-warning" />
                     </VBox>
                 </TitledPane>
 
                 <!-- Sensor Configuration -->
                 <TitledPane text="Sensor Configuration" collapsible="false">
-                    <VBox spacing="12" style="-fx-padding: 15;">
+                    <VBox spacing="12">
 
-                        <Label text="DHT Sensor Type:"
-                               style="-fx-font-weight: bold; -fx-font-size: 12; -fx-text-fill: #333;"/>
+                        <Label text="DHT SENSOR TYPE" styleClass="panel-field-label" />
 
-                        <!-- DHT22 option -->
-                        <HBox spacing="12" alignment="CENTER_LEFT">
+                        <!-- DHT22 -->
+                        <HBox spacing="14" alignment="CENTER_LEFT"
+                              style="-fx-background-color: #161D27; -fx-background-radius: 8; -fx-padding: 12; -fx-border-color: #1F2B3A; -fx-border-radius: 8; -fx-border-width: 1;">
                             <RadioButton fx:id="dht22Radio" text="DHT22"
                                          toggleGroup="$dhtToggleGroup"
-                                         style="-fx-font-size: 12; -fx-font-weight: bold; -fx-text-fill: #333;"/>
-                            <VBox fx:id="dht22DescriptionBox">
+                                         styleClass="radio-button" />
+                            <VBox fx:id="dht22DescriptionBox" spacing="2">
                                 <Label text="Higher accuracy  ±0.5 °C · ±2–5 % RH"
-                                       style="-fx-font-size: 11; -fx-text-fill: #555;"/>
+                                       style="-fx-font-size: 11px; -fx-text-fill: #8895A7;" />
                                 <Label text="Range −40 to 80 °C · Recommended"
-                                       style="-fx-font-size: 11; -fx-text-fill: #777;"/>
+                                       style="-fx-font-size: 11px; -fx-text-fill: #4A5568;" />
                             </VBox>
                         </HBox>
 
-                        <!-- DHT11 option -->
-                        <HBox spacing="12" alignment="CENTER_LEFT">
+                        <!-- DHT11 -->
+                        <HBox spacing="14" alignment="CENTER_LEFT"
+                              style="-fx-background-color: #161D27; -fx-background-radius: 8; -fx-padding: 12; -fx-border-color: #1F2B3A; -fx-border-radius: 8; -fx-border-width: 1;">
                             <RadioButton fx:id="dht11Radio" text="DHT11"
                                          toggleGroup="$dhtToggleGroup"
-                                         style="-fx-font-size: 12; -fx-font-weight: bold; -fx-text-fill: #333;"/>
-                            <VBox fx:id="dht11DescriptionBox">
+                                         styleClass="radio-button" />
+                            <VBox fx:id="dht11DescriptionBox" spacing="2">
                                 <Label text="Lower accuracy  ±2 °C · ±5 % RH"
-                                       style="-fx-font-size: 11; -fx-text-fill: #555;"/>
+                                       style="-fx-font-size: 11px; -fx-text-fill: #8895A7;" />
                                 <Label text="Range 0 to 50 °C · Budget option"
-                                       style="-fx-font-size: 11; -fx-text-fill: #777;"/>
+                                       style="-fx-font-size: 11px; -fx-text-fill: #4A5568;" />
                             </VBox>
                         </HBox>
 
                         <Label text="Only applies in Real Sensor mode — ignored during simulation."
-                               style="-fx-font-size: 11; -fx-text-fill: #999; -fx-font-style: italic;"/>
+                               styleClass="panel-status-dim" />
 
                         <Separator><VBox.margin><Insets top="4" bottom="4"/></VBox.margin></Separator>
 
-                        <Label fx:id="serialPortLabel" text="Serial Port:"
-                               style="-fx-font-weight: bold; -fx-font-size: 12; -fx-text-fill: #333;"/>
-                        <TextField fx:id="serialPortField"
-                                   promptText="e.g., /dev/ttyUSB0 (Linux) or COM3 (Windows)"
-                                   style="-fx-padding: 10; -fx-font-size: 11; -fx-text-fill: #333;">
-                            <VBox.margin><Insets bottom="10"/></VBox.margin>
-                        </TextField>
+                        <VBox spacing="5">
+                            <Label fx:id="serialPortLabel" text="SERIAL PORT" styleClass="panel-field-label" />
+                            <TextField fx:id="serialPortField"
+                                       promptText="e.g., /dev/ttyUSB0 (Linux) or COM3 (Windows)"
+                                       styleClass="panel-field">
+                                <VBox.margin><Insets bottom="8"/></VBox.margin>
+                            </TextField>
+                        </VBox>
 
-                        <Label fx:id="baudRateLabel" text="Baud Rate:"
-                               style="-fx-font-weight: bold; -fx-font-size: 12; -fx-text-fill: #333;"/>
-                        <TextField fx:id="baudRateField" promptText="9600"
-                                   style="-fx-padding: 10; -fx-font-size: 11; -fx-text-fill: #333;">
-                            <VBox.margin><Insets bottom="10"/></VBox.margin>
-                        </TextField>
+                        <VBox spacing="5">
+                            <Label fx:id="baudRateLabel" text="BAUD RATE" styleClass="panel-field-label" />
+                            <TextField fx:id="baudRateField"
+                                       promptText="9600"
+                                       styleClass="panel-field">
+                                <VBox.margin><Insets bottom="4"/></VBox.margin>
+                            </TextField>
+                        </VBox>
 
                         <Label text="Common baud rates: 9600, 115200"
-                               style="-fx-font-size: 11; -fx-text-fill: #999; -fx-font-style: italic;"/>
+                               styleClass="panel-status-dim" />
                     </VBox>
                 </TitledPane>
 
+                <!-- Status label -->
                 <Label fx:id="statusLabel" text="" wrapText="true"
-                       style="-fx-font-size: 12; -fx-text-fill: #4caf50; -fx-font-weight: bold;"/>
+                       styleClass="panel-status-ok" />
             </VBox>
         </ScrollPane>
     </center>
 
-    <!-- ================================================================
-         FOOTER
-         ================================================================ -->
+    <!-- ── FOOTER ─────────────────────────────────────────── -->
     <bottom>
         <HBox spacing="10" alignment="CENTER_RIGHT"
-              style="-fx-background-color: #f5f5f5; -fx-border-color: #ddd; -fx-border-width: 1 0 0 0;">
-            <padding><Insets top="15" right="20" bottom="15" left="20"/></padding>
+              styleClass="panel-footer">
             <Button fx:id="cancelButton" text="Cancel"
-                    style="-fx-padding: 8 20; -fx-font-size: 11;"/>
+                    styleClass="btn-secondary"
+                    onAction="#handleCancel" />
             <Button fx:id="saveButton" text="Save &amp; Apply"
-                    style="-fx-padding: 8 20; -fx-font-size: 11; -fx-font-weight: bold;
-                           -fx-text-fill: white; -fx-background-color: #4caf50;"/>
+                    styleClass="btn-accent"
+                    defaultButton="true"
+                    onAction="#handleSave" />
         </HBox>
     </bottom>
 

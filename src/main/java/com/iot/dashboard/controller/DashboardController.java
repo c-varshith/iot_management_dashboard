@@ -372,7 +372,12 @@ public class DashboardController implements Initializable {
 
             Stage settingsStage = new Stage();
             settingsStage.setTitle("Application Settings");
-            settingsStage.setScene(new Scene(root, 500, 600));
+            Scene settingsScene = new Scene(root, 500, 620);
+            String css = DashboardApplication.class.getResource("/com/iot/dashboard/styles.css") != null
+                    ? DashboardApplication.class.getResource("/com/iot/dashboard/styles.css").toExternalForm()
+                    : null;
+            if (css != null) settingsScene.getStylesheets().add(css);
+            settingsStage.setScene(settingsScene);
             settingsStage.initModality(Modality.APPLICATION_MODAL);
             settingsStage.setResizable(false);
             settingsStage.centerOnScreen();

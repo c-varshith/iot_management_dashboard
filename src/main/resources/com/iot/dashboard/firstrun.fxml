@@ -2,67 +2,89 @@
 
 <?import javafx.geometry.*?>
 <?import javafx.scene.control.*?>
+<?import javafx.scene.image.*?>
 <?import javafx.scene.layout.*?>
 
+<!--
+    firstrun.fxml — First-run database credentials screen
+    Controller: com.iot.dashboard.controller.FirstRunController
+-->
 <BorderPane xmlns="http://javafx.com/javafx"
             xmlns:fx="http://javafx.com/fxml"
             fx:controller="com.iot.dashboard.controller.FirstRunController"
-            prefWidth="480" prefHeight="420"
-            style="-fx-background-color: #1a1a2e;">
+            prefWidth="480" prefHeight="440"
+            styleClass="panel-root">
 
+    <!-- ── HEADER ─────────────────────────────────────────── -->
     <top>
-        <VBox style="-fx-background-color: #16213e; -fx-padding: 24 28 20 28;">
-            <Label text="Welcome to IoT Dashboard"
-                   style="-fx-font-size: 20; -fx-font-weight: bold; -fx-text-fill: #00d4ff;"/>
-            <Label text="Enter your MySQL credentials to get started."
-                   style="-fx-font-size: 12; -fx-text-fill: #aaa; -fx-padding: 6 0 0 0;"/>
+        <VBox styleClass="panel-header" spacing="0">
+            <HBox alignment="CENTER_LEFT" spacing="14">
+                <ImageView fitWidth="40" fitHeight="40" preserveRatio="true" smooth="true">
+                    <image><Image url="@logo.png" /></image>
+                </ImageView>
+                <VBox spacing="2">
+                    <Label text="Welcome to IoT Dashboard"
+                           styleClass="panel-title" />
+                    <Label text="Connect your MySQL database to get started."
+                           styleClass="panel-subtitle" />
+                </VBox>
+            </HBox>
         </VBox>
     </top>
 
+    <!-- ── FORM ───────────────────────────────────────────── -->
     <center>
-        <VBox spacing="14" style="-fx-padding: 24 28 10 28;">
+        <VBox styleClass="panel-body" spacing="14" style="-fx-padding: 24 32 16 32;">
 
-            <Label text="Database Host URL:"
-                   style="-fx-font-size: 11; -fx-font-weight: bold; -fx-text-fill: #ccc;"/>
-            <TextField fx:id="dbUrlField"
-                       style="-fx-padding: 9; -fx-background-color: #0f3460;
-                              -fx-text-fill: white; -fx-prompt-text-fill: #666;
-                              -fx-font-family: 'Courier New'; -fx-font-size: 11;"/>
+            <!-- Database Host -->
+            <VBox spacing="5">
+                <Label text="DATABASE HOST URL" styleClass="panel-field-label" />
+                <TextField fx:id="dbUrlField"
+                           promptText="jdbc:mysql://localhost:3306/iot_dashboard"
+                           styleClass="panel-field, panel-field-mono" />
+            </VBox>
 
-            <Label text="Username:"
-                   style="-fx-font-size: 11; -fx-font-weight: bold; -fx-text-fill: #ccc;"/>
-            <TextField fx:id="usernameField"
-                       promptText="e.g., root"
-                       style="-fx-padding: 9; -fx-background-color: #0f3460;
-                              -fx-text-fill: white; -fx-prompt-text-fill: #666;"/>
+            <!-- Username -->
+            <VBox spacing="5">
+                <Label text="USERNAME" styleClass="panel-field-label" />
+                <TextField fx:id="usernameField"
+                           promptText="e.g., root"
+                           styleClass="panel-field" />
+            </VBox>
 
-            <Label text="Password:"
-                   style="-fx-font-size: 11; -fx-font-weight: bold; -fx-text-fill: #ccc;"/>
-            <PasswordField fx:id="passwordField"
-                           promptText="Your MySQL password"
-                           style="-fx-padding: 9; -fx-background-color: #0f3460;
-                                  -fx-text-fill: white; -fx-prompt-text-fill: #666;"/>
+            <!-- Password -->
+            <VBox spacing="5">
+                <Label text="PASSWORD" styleClass="panel-field-label" />
+                <PasswordField fx:id="passwordField"
+                               promptText="Your MySQL password"
+                               styleClass="panel-field" />
+            </VBox>
 
+            <!-- Status / error -->
             <Label fx:id="statusLabel" text="" wrapText="true"
-                   style="-fx-font-size: 11; -fx-text-fill: #ff6b6b; -fx-padding: 4 0 0 0;"/>
+                   styleClass="panel-status-err" />
 
+            <!-- Config path info -->
             <Label fx:id="configPathLabel" text=""
-                   style="-fx-font-size: 10; -fx-text-fill: #888; -fx-font-style: italic;"/>
+                   styleClass="panel-status-dim" />
+
         </VBox>
     </center>
 
+    <!-- ── FOOTER ─────────────────────────────────────────── -->
     <bottom>
-        <VBox style="-fx-background-color: #16213e; -fx-padding: 14 28 20 28;" spacing="10">
+        <VBox styleClass="panel-footer" spacing="10">
             <HBox spacing="10" alignment="CENTER_RIGHT">
                 <Button fx:id="exitButton" text="Exit"
-                        style="-fx-padding: 9 22; -fx-background-color: #444;
-                               -fx-text-fill: white; -fx-cursor: hand;"/>
+                        styleClass="exit-btn"
+                        onAction="#handleExit" />
                 <Button fx:id="connectButton" text="Connect &amp; Launch"
-                        style="-fx-padding: 9 22; -fx-background-color: #00d4ff;
-                               -fx-text-fill: #0a0a1a; -fx-font-weight: bold; -fx-cursor: hand;"/>
+                        styleClass="btn-accent"
+                        defaultButton="true"
+                        onAction="#handleConnect" />
             </HBox>
-            <Label text="Credentials are saved to your user profile — not stored in the app."
-                   style="-fx-font-size: 10; -fx-text-fill: #555;"/>
+            <Label text="Credentials are saved to your user profile — never stored in source code."
+                   styleClass="panel-status-dim" />
         </VBox>
     </bottom>
 

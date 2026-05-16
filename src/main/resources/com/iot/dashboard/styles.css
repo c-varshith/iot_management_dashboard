@@ -1,179 +1,194 @@
 /* =============================================================
-   IoT Smart Energy Dashboard — Dark Theme CSS
+   IoT Smart Energy Dashboard — v1.0.2 Design System
+   Dark industrial theme with cyan accent
    =============================================================
-   Uses CSS variables-style root selectors for consistent theming.
-
-   Colour palette:
-     Background dark  : #0D1117
-     Panel dark       : #161B22
-     Card dark        : #1C2128
-     Border           : #30363D
-     Text primary     : #E6EDF3
-     Text secondary   : #7D8590
-     Accent cyan      : #00B4D8
-     Accent green     : #2EA043
-     Accent orange    : #F78166
-     Accent yellow    : #E3B341
+   Palette:
+     --bg-deep    : #080C12   deep navy-black
+     --bg-base    : #0D1117   base background
+     --bg-panel   : #111820   panel/card base
+     --bg-card    : #161D27   elevated card
+     --bg-raised  : #1C2533   input / raised
+     --border-dim : #1F2B3A   subtle border
+     --border-mid : #263242   mid border
+     --border-hi  : #2E3F54   highlight border
+     --text-pri   : #E8EFF8   primary text
+     --text-sec   : #8895A7   secondary text
+     --text-dim   : #4A5568   dimmed text
+     --cyan       : #00C8E8   primary accent
+     --cyan-glow  : #00A8C4   darker cyan
+     --green      : #22D98A   success/online
+     --amber      : #F5A623   warning/voltage
+     --coral      : #FF6B6B   danger/temperature
+     --indigo     : #7C8CF8   secondary accent
    ============================================================= */
 
 /* ─── GLOBAL ROOT ─────────────────────────────────────────── */
 .root {
-    -fx-font-family: "Segoe UI", "Helvetica Neue", Arial, sans-serif;
+    -fx-font-family: "Segoe UI", "SF Pro Display", "Helvetica Neue", Arial, sans-serif;
     -fx-font-size: 13px;
-    -fx-background-color: #0D1117;
-    -fx-text-fill: #E6EDF3;
+    -fx-background-color: #080C12;
+    -fx-text-fill: #E8EFF8;
 }
 
 /* ─── LOGIN SCREEN ────────────────────────────────────────── */
 .login-root {
-    -fx-background-color: linear-gradient(to bottom right, #0D1117, #1C2128, #0D1117);
+    -fx-background-color: #080C12;
 }
 
 .login-background {
     -fx-background-color: transparent;
 }
 
+/* The card itself */
 .login-card {
-    -fx-background-color: #161B22;
-    -fx-background-radius: 16;
-    -fx-border-color: #30363D;
+    -fx-background-color: #111820;
+    -fx-background-radius: 18;
+    -fx-border-color: #1F2B3A;
     -fx-border-width: 1;
-    -fx-border-radius: 16;
-    -fx-effect: dropshadow(gaussian, rgba(0,180,216,0.18), 30, 0, 0, 8);
-    -fx-min-width: 400;
+    -fx-border-radius: 18;
+    -fx-effect: dropshadow(gaussian, rgba(0,200,232,0.12), 40, 0.2, 0, 8);
+    -fx-min-width: 420;
+    -fx-max-width: 420;
 }
 
+/* Brand stripe — gradient header bar */
 .login-brand-stripe {
-    -fx-background-color: linear-gradient(to right, #00B4D8, #0077B6);
-    -fx-background-radius: 14 14 0 0;
-    -fx-padding: 16 24;
-    -fx-spacing: 10;
+    -fx-background-color: linear-gradient(to right, #0A1929, #0D2137, #0A1929);
+    -fx-background-radius: 17 17 0 0;
+    -fx-padding: 20 28;
+    -fx-spacing: 12;
     -fx-alignment: CENTER_LEFT;
-}
-
-.login-logo {
-    -fx-font-size: 26px;
-    -fx-text-fill: white;
+    -fx-border-color: transparent transparent #1F3048 transparent;
+    -fx-border-width: 0 0 1 0;
 }
 
 .login-brand-title {
-    -fx-font-size: 17px;
+    -fx-font-size: 16px;
     -fx-font-weight: bold;
-    -fx-text-fill: white;
+    -fx-text-fill: #E8EFF8;
+    -fx-padding: 0 0 0 4;
 }
 
+/* Form content area */
 .login-form-area {
-    -fx-padding: 24 30 16 30;
+    -fx-padding: 28 32 20 32;
+    -fx-background-color: transparent;
 }
 
 .login-subtitle {
-    -fx-font-size: 15px;
+    -fx-font-size: 20px;
     -fx-font-weight: bold;
-    -fx-text-fill: #E6EDF3;
-    -fx-padding: 0 0 4 0;
+    -fx-text-fill: #E8EFF8;
+    -fx-padding: 0 0 6 0;
 }
 
 .field-label {
     -fx-font-size: 11px;
-    -fx-text-fill: #7D8590;
+    -fx-text-fill: #8895A7;
     -fx-font-weight: bold;
-    letter-spacing: 1px;
 }
 
 .login-field {
-    -fx-background-color: #0D1117;
-    -fx-border-color: #30363D;
-    -fx-border-width: 1;
-    -fx-border-radius: 8;
-    -fx-background-radius: 8;
-    -fx-text-fill: #E6EDF3;
-    -fx-prompt-text-fill: #484F58;
-    -fx-padding: 10 12;
+    -fx-background-color: #1C2533;
+    -fx-border-color: #263242;
+    -fx-border-width: 1.5;
+    -fx-border-radius: 9;
+    -fx-background-radius: 9;
+    -fx-text-fill: #E8EFF8;
+    -fx-prompt-text-fill: #3A4A5C;
+    -fx-padding: 11 14;
     -fx-font-size: 13px;
 }
 
 .login-field:focused {
-    -fx-border-color: #00B4D8;
+    -fx-border-color: #00C8E8;
     -fx-border-width: 1.5;
-    -fx-effect: dropshadow(gaussian, rgba(0,180,216,0.25), 8, 0, 0, 0);
+    -fx-background-color: #1A2535;
+    -fx-effect: dropshadow(gaussian, rgba(0,200,232,0.22), 10, 0, 0, 0);
 }
 
+/* Main CTA button */
 .login-btn {
-    -fx-background-color: #00B4D8;
-    -fx-text-fill: #0D1117;
+    -fx-background-color: linear-gradient(to bottom, #00D4F0, #00A8C4);
+    -fx-text-fill: #060C14;
     -fx-font-weight: bold;
     -fx-font-size: 13px;
-    -fx-background-radius: 8;
-    -fx-border-radius: 8;
-    -fx-padding: 12 0;
+    -fx-background-radius: 9;
+    -fx-border-radius: 9;
+    -fx-padding: 13 0;
     -fx-cursor: hand;
-    letter-spacing: 2px;
+    -fx-effect: dropshadow(gaussian, rgba(0,200,232,0.45), 14, 0.3, 0, 3);
 }
 
 .login-btn:hover {
-    -fx-background-color: #48CAE4;
-    -fx-effect: dropshadow(gaussian, rgba(0,180,216,0.4), 10, 0, 0, 2);
+    -fx-background-color: linear-gradient(to bottom, #1ADCF8, #00BCD6);
+    -fx-effect: dropshadow(gaussian, rgba(0,200,232,0.65), 20, 0.3, 0, 4);
 }
 
 .login-btn:pressed {
-    -fx-background-color: #0096C7;
+    -fx-background-color: linear-gradient(to bottom, #009CB5, #0090A8);
+    -fx-effect: dropshadow(gaussian, rgba(0,200,232,0.25), 8, 0, 0, 2);
 }
 
 .exit-btn {
     -fx-background-color: transparent;
-    -fx-border-color: #30363D;
-    -fx-border-radius: 6;
-    -fx-background-radius: 6;
-    -fx-text-fill: #7D8590;
+    -fx-border-color: #1F2B3A;
+    -fx-border-radius: 7;
+    -fx-background-radius: 7;
+    -fx-text-fill: #4A5568;
     -fx-font-size: 11px;
-    -fx-padding: 5 12;
+    -fx-padding: 6 14;
     -fx-cursor: hand;
 }
 
 .exit-btn:hover {
-    -fx-border-color: #F78166;
-    -fx-text-fill: #F78166;
+    -fx-border-color: #FF6B6B;
+    -fx-text-fill: #FF6B6B;
+    -fx-background-color: rgba(255,107,107,0.06);
 }
 
 .error-label {
-    -fx-background-color: rgba(247,129,102,0.12);
-    -fx-border-color: #F78166;
+    -fx-background-color: rgba(255,107,107,0.09);
+    -fx-border-color: rgba(255,107,107,0.5);
     -fx-border-width: 1;
-    -fx-border-radius: 6;
-    -fx-background-radius: 6;
-    -fx-text-fill: #F78166;
+    -fx-border-radius: 7;
+    -fx-background-radius: 7;
+    -fx-text-fill: #FF8080;
     -fx-font-size: 11px;
-    -fx-padding: 7 10;
+    -fx-padding: 8 12;
 }
 
 .login-footer {
-    -fx-border-top-color: #21262D;
+    -fx-border-color: #1A2535 transparent transparent transparent;
     -fx-border-width: 1 0 0 0;
-    -fx-padding: 10 16;
+    -fx-padding: 12 20;
+    -fx-background-color: rgba(8,12,18,0.4);
+    -fx-background-radius: 0 0 17 17;
 }
 
 .login-spinner .progress-indicator-determinate-indicator,
 .login-spinner .progress-indicator-indeterminate-indicator {
-    -fx-progress-color: #00B4D8;
+    -fx-progress-color: #00C8E8;
 }
 
 .status-label {
-    -fx-text-fill: #00B4D8;
+    -fx-text-fill: #00C8E8;
     -fx-font-size: 11px;
 }
 
 /* ─── DASHBOARD ROOT ──────────────────────────────────────── */
 .dashboard-root {
-    -fx-background-color: #0D1117;
+    -fx-background-color: #080C12;
 }
 
 /* ─── TOP BAR ─────────────────────────────────────────────── */
 .topbar {
-    -fx-background-color: #161B22;
-    -fx-border-color: transparent transparent #21262D transparent;
+    -fx-background-color: #0D1420;
+    -fx-border-color: transparent transparent #1A2535 transparent;
     -fx-border-width: 0 0 1 0;
-    -fx-padding: 12 18;
+    -fx-padding: 11 20;
     -fx-alignment: CENTER_LEFT;
+    -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.4), 8, 0, 0, 2);
 }
 
 .topbar-logo {
@@ -181,102 +196,131 @@
 }
 
 .topbar-title {
-    -fx-font-size: 17px;
+    -fx-font-size: 16px;
     -fx-font-weight: bold;
-    -fx-text-fill: #E6EDF3;
+    -fx-text-fill: #E8EFF8;
 }
 
 .topbar-clock {
     -fx-font-family: "Courier New", monospace;
-    -fx-font-size: 13px;
-    -fx-text-fill: #00B4D8;
-    -fx-background-color: #0D1117;
-    -fx-padding: 5 10;
+    -fx-font-size: 12px;
+    -fx-text-fill: #00C8E8;
+    -fx-background-color: rgba(0,200,232,0.08);
+    -fx-border-color: rgba(0,200,232,0.2);
+    -fx-border-radius: 6;
+    -fx-border-width: 1;
     -fx-background-radius: 6;
+    -fx-padding: 5 10;
 }
 
 .topbar-readings {
     -fx-font-size: 12px;
-    -fx-text-fill: #2EA043;
-    -fx-background-color: rgba(46,160,67,0.12);
-    -fx-padding: 5 10;
+    -fx-text-fill: #22D98A;
+    -fx-background-color: rgba(34,217,138,0.09);
+    -fx-border-color: rgba(34,217,138,0.25);
+    -fx-border-radius: 6;
+    -fx-border-width: 1;
     -fx-background-radius: 6;
+    -fx-padding: 5 10;
 }
 
 /* ─── BUTTONS ─────────────────────────────────────────────── */
+
+/* Secondary — dark ghost button */
 .btn-secondary {
-    -fx-background-color: linear-gradient(#2B3238, #24282C);
-    -fx-text-fill: #E6EDF3;
-    -fx-border-color: #39424A;
+    -fx-background-color: linear-gradient(to bottom, #1E2A38, #192230);
+    -fx-text-fill: #C8D5E2;
+    -fx-border-color: #263242;
     -fx-border-width: 1;
     -fx-border-radius: 8;
     -fx-background-radius: 8;
     -fx-padding: 8 16;
     -fx-cursor: hand;
     -fx-font-size: 12px;
-    -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.35), 6, 0, 0, 2);
+    -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.4), 5, 0, 0, 2);
 }
 .btn-secondary:hover {
-    -fx-background-color: linear-gradient(#31373D, #2A3035);
-    -fx-border-color: #00B4D8;
+    -fx-background-color: linear-gradient(to bottom, #253546, #1E2C3E);
+    -fx-border-color: #00C8E8;
+    -fx-text-fill: #E8EFF8;
+    -fx-effect: dropshadow(gaussian, rgba(0,200,232,0.18), 8, 0, 0, 2);
+}
+.btn-secondary:pressed {
+    -fx-background-color: #141C28;
+    -fx-border-color: #009CB5;
 }
 
+/* Accent — cyan primary */
 .btn-accent {
-    -fx-background-color: #00B4D8;
-    -fx-text-fill: #0D1117;
+    -fx-background-color: linear-gradient(to bottom, #00D4F0, #009CB5);
+    -fx-text-fill: #060C14;
     -fx-font-weight: bold;
+    -fx-border-color: transparent;
     -fx-border-radius: 8;
     -fx-background-radius: 8;
-    -fx-padding: 7 14;
+    -fx-padding: 8 16;
     -fx-cursor: hand;
     -fx-font-size: 12px;
-    -fx-effect: dropshadow(gaussian, rgba(0,180,216,0.18), 8, 0, 0, 2);
+    -fx-effect: dropshadow(gaussian, rgba(0,200,232,0.4), 10, 0.2, 0, 2);
 }
 .btn-accent:hover {
-    -fx-background-color: #48CAE4;
+    -fx-background-color: linear-gradient(to bottom, #1ADCF8, #00B4D0);
+    -fx-effect: dropshadow(gaussian, rgba(0,200,232,0.6), 14, 0.3, 0, 3);
+}
+.btn-accent:pressed {
+    -fx-background-color: linear-gradient(to bottom, #0090A8, #007A90);
+    -fx-effect: dropshadow(gaussian, rgba(0,200,232,0.2), 6, 0, 0, 1);
 }
 
+/* Danger — solid red */
 .btn-danger {
-    -fx-background-color: #F85A4B;
+    -fx-background-color: linear-gradient(to bottom, #FF7070, #E83535);
     -fx-text-fill: #FFFFFF;
     -fx-border-color: transparent;
-    -fx-border-width: 0;
     -fx-border-radius: 8;
     -fx-background-radius: 8;
-    -fx-padding: 7 14;
+    -fx-padding: 8 16;
     -fx-cursor: hand;
     -fx-font-size: 12px;
-    -fx-effect: dropshadow(gaussian, rgba(248,90,75,0.12), 6, 0, 0, 2);
+    -fx-font-weight: bold;
+    -fx-effect: dropshadow(gaussian, rgba(255,80,80,0.35), 8, 0.2, 0, 2);
 }
 .btn-danger:hover {
-    -fx-background-color: #E34A3B;
+    -fx-background-color: linear-gradient(to bottom, #FF8080, #F04040);
+    -fx-effect: dropshadow(gaussian, rgba(255,80,80,0.55), 12, 0.3, 0, 3);
+}
+.btn-danger:pressed {
+    -fx-background-color: linear-gradient(to bottom, #C83030, #B02828);
+    -fx-effect: dropshadow(gaussian, rgba(255,80,80,0.2), 5, 0, 0, 1);
 }
 
+/* Mode toggle button */
 .btn-mode {
-    -fx-background-color: rgba(0,180,216,0.12);
-    -fx-text-fill: #48CAE4;
-    -fx-border-color: rgba(0,180,216,0.35);
+    -fx-background-color: rgba(0,200,232,0.08);
+    -fx-text-fill: #00C8E8;
+    -fx-border-color: rgba(0,200,232,0.3);
     -fx-border-width: 1;
     -fx-border-radius: 8;
     -fx-background-radius: 8;
-    -fx-padding: 7 14;
+    -fx-padding: 8 16;
     -fx-cursor: hand;
     -fx-font-size: 12px;
 }
 .btn-mode:hover {
-    -fx-background-color: rgba(0,180,216,0.18);
-    -fx-border-color: #48CAE4;
+    -fx-background-color: rgba(0,200,232,0.15);
+    -fx-border-color: #00C8E8;
 }
 .btn-mode:selected {
-    -fx-background-color: rgba(46,160,67,0.16);
-    -fx-text-fill: #7EE787;
-    -fx-border-color: rgba(46,160,67,0.45);
+    -fx-background-color: rgba(34,217,138,0.12);
+    -fx-text-fill: #22D98A;
+    -fx-border-color: rgba(34,217,138,0.4);
 }
 
+/* Subtle small action button */
 .btn-subtle {
-    -fx-background-color: #23272C;
-    -fx-text-fill: #D9E6EF;
-    -fx-border-color: #2F3940;
+    -fx-background-color: #161D27;
+    -fx-text-fill: #C8D5E2;
+    -fx-border-color: #263242;
     -fx-border-width: 1;
     -fx-border-radius: 6;
     -fx-background-radius: 6;
@@ -285,84 +329,100 @@
     -fx-font-size: 11px;
 }
 .btn-subtle:hover {
-    -fx-text-fill: #FFFFFF;
-    -fx-border-color: #7D8590;
-    -fx-background-color: #2B3136;
+    -fx-text-fill: #E8EFF8;
+    -fx-border-color: #4A5568;
+    -fx-background-color: #1C2533;
 }
 
 /* ─── METRIC SUMMARY CARDS ────────────────────────────────── */
 .metric-card {
-    -fx-background-color: #21262D;
-    -fx-background-radius: 10;
-    -fx-border-color: #30363D;
+    -fx-background-color: linear-gradient(to bottom, #161D27, #111820);
+    -fx-background-radius: 12;
+    -fx-border-color: #1F2B3A;
     -fx-border-width: 1;
-    -fx-border-radius: 10;
-    -fx-padding: 10 12;
-    -fx-min-height: 72;
+    -fx-border-radius: 12;
+    -fx-padding: 12 14;
+    -fx-min-height: 80;
+    -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.35), 8, 0, 0, 2);
 }
 
 .metric-label {
-    -fx-font-size: 11px;
+    -fx-font-size: 10px;
     -fx-font-weight: bold;
-    -fx-text-fill: #C9D1D9;
+    -fx-text-fill: #8895A7;
+    -fx-padding: 0 0 2 0;
 }
 
 .metric-value {
     -fx-font-family: "Courier New", monospace;
-    -fx-font-size: 22px;
+    -fx-font-size: 24px;
     -fx-font-weight: bold;
-    -fx-text-fill: #E6EDF3;
+    -fx-text-fill: #E8EFF8;
 }
 
-.metric-temp  .metric-value { -fx-text-fill: #FF8C7A; }
+/* Per-type metric accent colours */
+.metric-temp  .metric-value { -fx-text-fill: #FF8080; }
 .metric-humid .metric-value { -fx-text-fill: #29D5F5; }
-.metric-volt  .metric-value { -fx-text-fill: #F0C040; }
-.metric-power .metric-value { -fx-text-fill: #3DD68C; }
+.metric-volt  .metric-value { -fx-text-fill: #F5C842; }
+.metric-power .metric-value { -fx-text-fill: #22D98A; }
 
-.metric-temp  { -fx-border-color: rgba(247,129,102,0.3); }
-.metric-humid { -fx-border-color: rgba(0,180,216,0.3); }
-.metric-volt  { -fx-border-color: rgba(227,179,65,0.3); }
-.metric-power { -fx-border-color: rgba(46,160,67,0.3); }
+.metric-temp  {
+    -fx-border-color: rgba(255,107,107,0.28);
+    -fx-effect: dropshadow(gaussian, rgba(255,107,107,0.08), 10, 0, 0, 0);
+}
+.metric-humid {
+    -fx-border-color: rgba(0,200,232,0.28);
+    -fx-effect: dropshadow(gaussian, rgba(0,200,232,0.08), 10, 0, 0, 0);
+}
+.metric-volt  {
+    -fx-border-color: rgba(245,200,66,0.28);
+    -fx-effect: dropshadow(gaussian, rgba(245,200,66,0.08), 10, 0, 0, 0);
+}
+.metric-power {
+    -fx-border-color: rgba(34,217,138,0.28);
+    -fx-effect: dropshadow(gaussian, rgba(34,217,138,0.08), 10, 0, 0, 0);
+}
 
 /* ─── LINE CHARTS ─────────────────────────────────────────── */
 .chart {
-    -fx-background-color: #161B22;
-    -fx-background-radius: 10;
-    -fx-border-color: #21262D;
+    -fx-background-color: #111820;
+    -fx-background-radius: 12;
+    -fx-border-color: #1A2535;
     -fx-border-width: 1;
-    -fx-border-radius: 10;
-    -fx-padding: 8;
+    -fx-border-radius: 12;
+    -fx-padding: 10;
+    -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.3), 6, 0, 0, 2);
 }
 
 .chart-plot-background {
-    -fx-background-color: #0D1117;
-    -fx-background-radius: 6;
+    -fx-background-color: #0A1018;
+    -fx-background-radius: 8;
 }
 
 .chart-title {
     -fx-font-size: 12px;
     -fx-font-weight: bold;
-    -fx-text-fill: #7D8590;
+    -fx-text-fill: #8895A7;
 }
 
 .axis-label {
     -fx-font-size: 10px;
-    -fx-text-fill: #484F58;
+    -fx-text-fill: #3A4A5C;
 }
 
 .axis {
-    -fx-tick-label-fill: #484F58;
+    -fx-tick-label-fill: #3A4A5C;
     -fx-tick-length: 4;
     -fx-minor-tick-length: 2;
 }
 
 .chart-horizontal-grid-lines {
-    -fx-stroke: #21262D;
+    -fx-stroke: #141E2B;
     -fx-stroke-dash-array: 4 4;
 }
 
 .chart-vertical-grid-lines {
-    -fx-stroke: #21262D;
+    -fx-stroke: #141E2B;
     -fx-stroke-dash-array: 4 4;
 }
 
@@ -371,38 +431,38 @@
     -fx-effect: null;
 }
 
-/* Per-chart series line colours */
-.chart-temp .chart-series-line   { -fx-stroke: #F78166; }
-.chart-humid .chart-series-line  { -fx-stroke: #00B4D8; }
-.chart-volt .chart-series-line   { -fx-stroke: #E3B341; }
-.chart-power .chart-series-line  { -fx-stroke: #2EA043; }
+.chart-temp  .chart-series-line { -fx-stroke: #FF7070; }
+.chart-humid .chart-series-line { -fx-stroke: #00C8E8; }
+.chart-volt  .chart-series-line { -fx-stroke: #F5C842; }
+.chart-power .chart-series-line { -fx-stroke: #22D98A; }
 
 /* ─── DASHBOARD CENTER ────────────────────────────────────── */
 .dashboard-center {
-    -fx-background-color: #0D1117;
+    -fx-background-color: #080C12;
 }
 
 /* ─── TABLE SECTION ───────────────────────────────────────── */
 .table-section {
-    -fx-background-color: #161B22;
-    -fx-background-radius: 10;
-    -fx-border-color: #21262D;
+    -fx-background-color: #111820;
+    -fx-background-radius: 12;
+    -fx-border-color: #1A2535;
     -fx-border-width: 1;
-    -fx-border-radius: 10;
+    -fx-border-radius: 12;
     -fx-padding: 0;
     -fx-spacing: 0;
+    -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.3), 6, 0, 0, 2);
 }
 
 .table-header-bar {
-    -fx-padding: 8 12;
-    -fx-border-color: transparent transparent #21262D transparent;
+    -fx-padding: 10 14;
+    -fx-border-color: transparent transparent #1A2535 transparent;
     -fx-border-width: 0 0 1 0;
 }
 
 .section-title {
     -fx-font-size: 13px;
     -fx-font-weight: bold;
-    -fx-text-fill: #E6EDF3;
+    -fx-text-fill: #E8EFF8;
 }
 
 .data-table {
@@ -412,134 +472,282 @@
 }
 
 .data-table .column-header-background {
-    -fx-background-color: #0D1117;
+    -fx-background-color: #0A1018;
 }
 
 .data-table .column-header {
     -fx-background-color: transparent;
-    -fx-border-color: transparent transparent #21262D transparent;
+    -fx-border-color: transparent transparent #1A2535 transparent;
     -fx-border-width: 0 0 1 0;
-    -fx-size: 32;
+    -fx-size: 34;
 }
 
 .data-table .column-header .label {
-    -fx-text-fill: #00B4D8;
+    -fx-text-fill: #00C8E8;
     -fx-font-size: 11px;
     -fx-font-weight: bold;
 }
 
 .data-table .table-row-cell {
     -fx-background-color: transparent;
-    -fx-border-color: transparent transparent #21262D transparent;
+    -fx-border-color: transparent transparent #14202E transparent;
     -fx-border-width: 0 0 1 0;
-    -fx-cell-size: 28px;
+    -fx-cell-size: 30px;
 }
 
 .data-table .table-row-cell:selected {
-    -fx-background-color: rgba(0,180,216,0.12);
+    -fx-background-color: rgba(0,200,232,0.10);
 }
 
 .data-table .table-row-cell:hover {
-    -fx-background-color: rgba(255,255,255,0.03);
+    -fx-background-color: rgba(255,255,255,0.025);
 }
 
 .data-table .table-cell {
-    -fx-text-fill: #C9D1D9;
+    -fx-text-fill: #BCC8D8;
     -fx-font-size: 12px;
-    -fx-padding: 4 8;
+    -fx-padding: 4 10;
     -fx-border-color: transparent;
 }
 
 .table-placeholder {
-    -fx-text-fill: #484F58;
+    -fx-text-fill: #3A4A5C;
     -fx-font-size: 12px;
 }
 
 /* ─── STATUS BAR ──────────────────────────────────────────── */
 .statusbar {
-    -fx-background-color: #161B22;
-    -fx-border-color: #21262D transparent transparent transparent;
+    -fx-background-color: #0A1018;
+    -fx-border-color: #1A2535 transparent transparent transparent;
     -fx-border-width: 1 0 0 0;
-    -fx-padding: 6 16;
+    -fx-padding: 6 18;
 }
 
 .status-text {
-    -fx-text-fill: #2EA043;
+    -fx-text-fill: #22D98A;
     -fx-font-size: 11px;
 }
 
 .status-right {
-    -fx-text-fill: #30363D;
+    -fx-text-fill: #263242;
     -fx-font-size: 10px;
 }
 
 .mode-label {
-    -fx-text-fill: #7D8590;
+    -fx-text-fill: #4A5568;
     -fx-font-size: 11px;
 }
 
-/* ─── SCROLL BAR (minimal dark style) ────────────────────── */
+/* ─── SCROLL BAR ──────────────────────────────────────────── */
 .scroll-bar:vertical .thumb,
 .scroll-bar:horizontal .thumb {
-    -fx-background-color: #30363D;
+    -fx-background-color: #263242;
     -fx-background-radius: 4;
 }
-
+.scroll-bar:vertical .thumb:hover,
+.scroll-bar:horizontal .thumb:hover {
+    -fx-background-color: #2E3F54;
+}
 .scroll-bar:vertical .track,
 .scroll-bar:horizontal .track {
-    -fx-background-color: #161B22;
+    -fx-background-color: #0D1420;
 }
-
 .scroll-bar .increment-button,
 .scroll-bar .decrement-button {
     -fx-background-color: transparent;
     -fx-padding: 0;
 }
 
-/* ─── ALERT / CONFIRMATION DIALOGS ────────────────────────── */
+/* ─── DIALOGS ─────────────────────────────────────────────── */
 .dialog-pane {
-    -fx-background-color: #161B22;
-    -fx-border-color: #30363D;
+    -fx-background-color: #111820;
+    -fx-border-color: #1F2B3A;
     -fx-border-width: 1;
 }
 
 .dialog-pane .content.label,
 .dialog-pane > .content,
 .dialog-pane .label {
-    -fx-text-fill: #E6EDF3;
+    -fx-text-fill: #E8EFF8;
     -fx-background-color: transparent;
 }
 
 .dialog-pane .header-panel {
-    -fx-background-color: #0D1117;
+    -fx-background-color: #0D1420;
+    -fx-border-color: transparent transparent #1A2535 transparent;
+    -fx-border-width: 0 0 1 0;
 }
 
 .dialog-pane .header-panel .label {
-    -fx-text-fill: #E6EDF3;
+    -fx-text-fill: #E8EFF8;
     -fx-font-size: 14px;
     -fx-font-weight: bold;
 }
 
 .dialog-pane .button-bar .button {
-    -fx-background-color: #21262D;
-    -fx-text-fill: #E6EDF3;
-    -fx-border-color: #30363D;
+    -fx-background-color: linear-gradient(to bottom, #1E2A38, #192230);
+    -fx-text-fill: #C8D5E2;
+    -fx-border-color: #263242;
     -fx-border-width: 1;
-    -fx-border-radius: 6;
-    -fx-background-radius: 6;
+    -fx-border-radius: 7;
+    -fx-background-radius: 7;
     -fx-cursor: hand;
+    -fx-padding: 7 18;
 }
 
 .dialog-pane .button-bar .button:hover {
-    -fx-background-color: #30363D;
+    -fx-background-color: linear-gradient(to bottom, #253546, #1E2C3E);
+    -fx-border-color: #00C8E8;
 }
 
 .dialog-pane .button-bar .button:default {
-    -fx-background-color: #1F6FEB;
-    -fx-text-fill: white;
+    -fx-background-color: linear-gradient(to bottom, #00D4F0, #009CB5);
+    -fx-text-fill: #060C14;
+    -fx-font-weight: bold;
     -fx-border-color: transparent;
+    -fx-effect: dropshadow(gaussian, rgba(0,200,232,0.35), 8, 0.2, 0, 2);
 }
 
 .dialog-pane .button-bar .button:default:hover {
-    -fx-background-color: #388BFD;
+    -fx-background-color: linear-gradient(to bottom, #1ADCF8, #00B4D0);
+    -fx-effect: dropshadow(gaussian, rgba(0,200,232,0.55), 12, 0.3, 0, 3);
+}
+
+/* ─── FIRSTRUN / SETTINGS — shared dark-panel classes ─────── */
+.panel-root {
+    -fx-background-color: #0D1117;
+}
+
+.panel-header {
+    -fx-background-color: linear-gradient(to bottom, #0F1921, #0D1520);
+    -fx-border-color: transparent transparent #1A2535 transparent;
+    -fx-border-width: 0 0 1 0;
+    -fx-padding: 24 28 20 28;
+}
+
+.panel-title {
+    -fx-font-size: 20px;
+    -fx-font-weight: bold;
+    -fx-text-fill: #E8EFF8;
+}
+
+.panel-subtitle {
+    -fx-font-size: 12px;
+    -fx-text-fill: #4A5568;
+    -fx-padding: 4 0 0 0;
+}
+
+.panel-body {
+    -fx-padding: 24 28 16 28;
+    -fx-background-color: transparent;
+    -fx-spacing: 14;
+}
+
+.panel-footer {
+    -fx-background-color: linear-gradient(to top, #0A1018, #0D1420);
+    -fx-border-color: #1A2535 transparent transparent transparent;
+    -fx-border-width: 1 0 0 0;
+    -fx-padding: 16 24;
+}
+
+.panel-field-label {
+    -fx-font-size: 11px;
+    -fx-font-weight: bold;
+    -fx-text-fill: #8895A7;
+    -fx-padding: 0 0 2 0;
+}
+
+.panel-field {
+    -fx-background-color: #1C2533;
+    -fx-border-color: #263242;
+    -fx-border-width: 1.5;
+    -fx-border-radius: 9;
+    -fx-background-radius: 9;
+    -fx-text-fill: #E8EFF8;
+    -fx-prompt-text-fill: #3A4A5C;
+    -fx-padding: 11 14;
+    -fx-font-size: 13px;
+}
+
+.panel-field:focused {
+    -fx-border-color: #00C8E8;
+    -fx-background-color: #1A2535;
+    -fx-effect: dropshadow(gaussian, rgba(0,200,232,0.22), 10, 0, 0, 0);
+}
+
+.panel-field-mono {
+    -fx-font-family: "Courier New", monospace;
+    -fx-font-size: 11px;
+}
+
+.panel-status-ok  { -fx-text-fill: #22D98A; -fx-font-size: 12px; -fx-font-weight: bold; }
+.panel-status-err { -fx-text-fill: #FF6B6B; -fx-font-size: 11px; }
+.panel-status-dim { -fx-text-fill: #4A5568; -fx-font-size: 10px; -fx-font-style: italic; }
+.panel-warning    { -fx-text-fill: #F5A623; -fx-font-size: 11px; -fx-font-style: italic; }
+
+/* TitledPane in dark mode */
+.titled-pane {
+    -fx-text-fill: #E8EFF8;
+}
+.titled-pane > .title {
+    -fx-background-color: #161D27;
+    -fx-border-color: #1F2B3A;
+    -fx-border-radius: 8 8 0 0;
+    -fx-background-radius: 8 8 0 0;
+    -fx-padding: 10 14;
+}
+.titled-pane > .title > .arrow-button .arrow {
+    -fx-background-color: #8895A7;
+}
+.titled-pane > .title .text {
+    -fx-fill: #E8EFF8;
+    -fx-font-size: 13px;
+    -fx-font-weight: bold;
+}
+.titled-pane > .content {
+    -fx-background-color: #111820;
+    -fx-border-color: #1F2B3A;
+    -fx-border-radius: 0 0 8 8;
+    -fx-border-width: 0 1 1 1;
+    -fx-padding: 16;
+}
+
+/* Radio buttons */
+.radio-button {
+    -fx-text-fill: #C8D5E2;
+    -fx-font-size: 12px;
+}
+.radio-button .radio {
+    -fx-border-color: #263242;
+    -fx-background-color: #1C2533;
+}
+.radio-button:selected .radio {
+    -fx-background-color: #1C2533;
+    -fx-border-color: #00C8E8;
+}
+.radio-button:selected .dot {
+    -fx-background-color: #00C8E8;
+}
+
+/* Separator */
+.separator .line {
+    -fx-border-color: #1A2535;
+}
+
+/* ToggleButton in settings */
+.toggle-btn-panel {
+    -fx-background-color: rgba(0,200,232,0.08);
+    -fx-border-color: rgba(0,200,232,0.35);
+    -fx-border-width: 1.5;
+    -fx-border-radius: 20;
+    -fx-background-radius: 20;
+    -fx-text-fill: #00C8E8;
+    -fx-font-size: 12px;
+    -fx-padding: 7 18;
+    -fx-cursor: hand;
+}
+.toggle-btn-panel:selected {
+    -fx-background-color: rgba(34,217,138,0.12);
+    -fx-border-color: rgba(34,217,138,0.45);
+    -fx-text-fill: #22D98A;
 }
