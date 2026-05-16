@@ -18,15 +18,13 @@ src="https://img.shields.io/badge/Sensor%20Modes-Real%20%2B%20Simulation-FF6B35?
 </p>
 
 <p align="center">
-   <a href="/LICENSE"><img src="https://img.shields.io/badge/License-MIT-111827?style=for-the-badge" alt="license"/></a>
+   <a href="LICENSE"><img src="https://img.shields.io/badge/License-MIT-111827?style=for-the-badge" alt="license"/></a>
    <a href="https://github.com/c-varshith/iot_management_dashboard/releases/latest"><img src="https://img.shields.io/github/v/release/c-varshith/iot_management_dashboard?style=for-the-badge" alt="release"/></a>
    <a href="https://github.com/c-varshith/iot_management_dashboard/actions"><img src="https://img.shields.io/github/actions/workflow/status/c-varshith/iot_management_dashboard/ci.yml?style=for-the-badge&label=build" alt="build status"/></a>
    <a href="https://github.com/c-varshith/iot_management_dashboard"><img src="https://img.shields.io/github/languages/top/c-varshith/iot_management_dashboard?style=for-the-badge" alt="languages"/></a>
 </p>
 
-<p align="center">
-   This repository now includes a LICENSE file (MIT). See <a href="/LICENSE">LICENSE</a> for details.
-</p>
+
 
 <p align="center">
    <a href="#features">Features</a> &bull;
@@ -323,6 +321,11 @@ See the **[🔌 Arduino Sensor Connection](#-arduino-sensor-connection)** sectio
 
 ---
 
+## License
+
+This project is released under the MIT License. See the [LICENSE](LICENSE) file for full terms and copyright information.
+
+
 ## Project Structure
 
 ```
@@ -613,6 +616,8 @@ Gaussian-distributed values (used in full simulation mode or for voltage/power):
 
 ---
 
-## 📄 License
+## License
 
-MIT — free to use, modify, and distribute. Attribution appreciated.
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
+
+This project is licensed under the MIT License — see the full text in the [LICENSE](LICENSE) file for details.
