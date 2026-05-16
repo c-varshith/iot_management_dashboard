@@ -115,6 +115,7 @@ public class DashboardController implements Initializable {
     private ScheduledExecutorService alertScheduler;   // NEW — polls alert count
 
     private final Map<SensorType, XYChart.Series<Number, Number>> chartSeriesMap      = new HashMap<>();
+    private final Map<SensorType, LineChart<Number, Number>>      chartMap             = new HashMap<>();
     private final Map<SensorType, Label>                           currentValueLabelMap = new HashMap<>();
     private final Map<SensorType, AtomicLong>                      xCounterMap          = new HashMap<>();
     private final ObservableList<SensorData>                       tableData            = FXCollections.observableArrayList();
@@ -239,6 +240,7 @@ public class DashboardController implements Initializable {
         chart.getData().add(series);
 
         chartSeriesMap.put(type, series);
+        chartMap.put(type, chart);
         xCounterMap.put(type, new AtomicLong(0));
     }
 
@@ -524,17 +526,33 @@ public class DashboardController implements Initializable {
             dataTable.refresh();
         });
 
-        // Clear all chart data and reset X-axis counters
+        // Clear all chart data and reset X-axis counters.
+        //
+        // series.getData().clear() only removes the data points but leaves the
+        // LineChart's internal path node (the drawn line) in the scene graph —
+        // JavaFX does not repaint it until the next data point arrives, so the
+        // old line visually remains. The correct fix is to remove the series from
+        // the chart entirely and add a fresh empty one, which forces a full repaint.
         for (SensorType type : SensorType.values()) {
-            XYChart.Series<Number, Number> series = chartSeriesMap.get(type);
-            if (series != null) {
-                series.getData().clear();
+            LineChart<Number, Number>          chart  = chartMap.get(type);
+            XYChart.Series<Number, Number>     series = chartSeriesMap.get(type);
+
+            if (chart != null && series != null) {
+                String seriesName = series.getName();
+
+                // Remove old series — this clears the drawn path from the scene graph
+                chart.getData().remove(series);
+
+                // Add a fresh empty series with the same name
+                XYChart.Series<Number, Number> fresh = new XYChart.Series<>();
+                fresh.setName(seriesName);
+                chart.getData().add(fresh);
+                chartSeriesMap.put(type, fresh);
             }
-            // Reset the X-axis counter for this sensor type
+
+            // Reset the X-axis counter so the new series starts from 0
             AtomicLong counter = xCounterMap.get(type);
-            if (counter != null) {
-                counter.set(0);
-            }
+            if (counter != null) counter.set(0);
         }
 
         updateStatus("Deleted " + deleted + " old DB reading(s). UI table and charts cleared.");
