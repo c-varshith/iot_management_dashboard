@@ -76,12 +76,10 @@
         <VBox styleClass="panel-footer" spacing="10">
             <HBox spacing="10" alignment="CENTER_RIGHT">
                 <Button fx:id="exitButton" text="Exit"
-                        styleClass="exit-btn"
-                        onAction="#handleExit" />
+                        styleClass="exit-btn" />
                 <Button fx:id="connectButton" text="Connect &amp; Launch"
                         styleClass="btn-accent"
-                        defaultButton="true"
-                        onAction="#handleConnect" />
+                        defaultButton="true" />
             </HBox>
             <Label text="Credentials are saved to your user profile — never stored in source code."
                    styleClass="panel-status-dim" />

@@ -23,7 +23,6 @@
           alignment="CENTER"
           spacing="0"
           maxWidth="420"
-          maxHeight="460"
           styleClass="login-card">
 
         <!-- Top brand stripe -->
@@ -83,7 +82,7 @@
         </VBox>
 
         <!-- Footer -->
-        <HBox alignment="CENTER_RIGHT" styleClass="login-footer">
+        <HBox alignment="CENTER_RIGHT" minHeight="44" styleClass="login-footer">
             <Button text="Exit" onAction="#handleExit" styleClass="exit-btn" />
         </HBox>
     </VBox>

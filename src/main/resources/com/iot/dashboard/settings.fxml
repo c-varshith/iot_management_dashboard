@@ -157,12 +157,10 @@
         <HBox spacing="10" alignment="CENTER_RIGHT"
               styleClass="panel-footer">
             <Button fx:id="cancelButton" text="Cancel"
-                    styleClass="btn-secondary"
-                    onAction="#handleCancel" />
+                    styleClass="btn-secondary" />
             <Button fx:id="saveButton" text="Save &amp; Apply"
                     styleClass="btn-accent"
-                    defaultButton="true"
-                    onAction="#handleSave" />
+                    defaultButton="true" />
         </HBox>
     </bottom>
 

@@ -114,7 +114,7 @@ public class DashboardApplication extends Application {
                 DashboardApplication.class.getResource("/com/iot/dashboard/login.fxml"));
         Parent root = loader.load();
 
-        Scene scene = new Scene(root, 520, 480);
+        Scene scene = new Scene(root, 520, 510);
         scene.getStylesheets().add(
                 DashboardApplication.class.getResource("/com/iot/dashboard/styles.css")
                         .toExternalForm());

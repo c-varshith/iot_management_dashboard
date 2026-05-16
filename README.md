@@ -612,5 +612,3 @@ Gaussian-distributed values (used in full simulation mode or for voltage/power):
 ## 📄 License
 
 MIT — free to use, modify, and distribute. Attribution appreciated.
-
-This project is licensed under the MIT License. See the [LICENSE](./LICENSE) file in this repository for full details.
