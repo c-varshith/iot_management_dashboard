@@ -493,27 +493,26 @@ public class DashboardController implements Initializable {
     @FXML
     private void handleClearData(ActionEvent event) {
         boolean confirm = AlertUtil.showConfirmation(
-                "Clear Old Data",
+                "Clear All Data",
                 "This will:\n" +
+                "  • Delete ALL readings from the database\n" +
                 "  • Clear the on-screen readings table\n" +
-                "  • Clear all chart data\n" +
-                "  • Delete all DB readings older than 24 hours\n\n" +
-                "Recent readings are kept. Continue?");
+                "  • Reset all charts to blank\n\n" +
+                "This cannot be undone. Continue?");
 
         if (!confirm) return;
 
-        // Log stats via stored procedure before deleting (READ via SP)
+        // Log stats via stored procedure before deleting
         String tempStats  = DatabaseManager.getInstance().callGetSensorStats(1, 24);
         String powerStats = DatabaseManager.getInstance().callGetSensorStats(4, 24);
         LOGGER.info("Pre-delete stats — " + tempStats);
         LOGGER.info("Pre-delete stats — " + powerStats);
 
-        // Nested subquery: find devices that currently have active alerts (Chapter 6)
         List<String[]> alertingDevices = DatabaseManager.getInstance().getDevicesWithActiveAlerts();
         LOGGER.info("Devices with active alerts before purge: " + alertingDevices.size());
 
-        // DELETE old readings from the database
-        int deleted = DatabaseManager.getInstance().deleteOldReadings(24);
+        // DELETE ALL readings from the database (pass 0 hours = delete everything)
+        int deleted = DatabaseManager.getInstance().deleteOldReadings(0);
 
         // Clear the UI table
         tableData.clear();

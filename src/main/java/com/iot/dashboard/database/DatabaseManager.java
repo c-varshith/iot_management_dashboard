@@ -605,9 +605,10 @@ public class DatabaseManager {
      * @return number of rows deleted
      */
     public int deleteOldReadings(int olderThanHours) {
-        final String sql =
-                "DELETE FROM sensor_data " +
-                "WHERE timestamp < NOW() - INTERVAL ? HOUR";
+        // olderThanHours == 0 means delete ALL readings
+        final String sql = (olderThanHours == 0)
+                ? "DELETE FROM sensor_data"
+                : "DELETE FROM sensor_data WHERE timestamp < NOW() - INTERVAL ? HOUR";
 
         Connection conn = null;
         try {
@@ -616,14 +617,14 @@ public class DatabaseManager {
 
             int deleted;
             try (PreparedStatement ps = conn.prepareStatement(sql)) {
-                ps.setInt(1, olderThanHours);
+                if (olderThanHours > 0) ps.setInt(1, olderThanHours);
                 deleted = ps.executeUpdate();
             }
 
             conn.commit();             // COMMIT
             conn.setAutoCommit(true);
             LOGGER.info("deleteOldReadings: removed " + deleted +
-                        " rows older than " + olderThanHours + " hours.");
+                        (olderThanHours == 0 ? " rows (full wipe)." : " rows older than " + olderThanHours + " hours."));
             return deleted;
 
         } catch (SQLException e) {
