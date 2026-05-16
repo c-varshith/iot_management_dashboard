@@ -142,48 +142,58 @@ public class SettingsController implements Initializable {
 
     /**
      * Enable/disable real sensor settings based on mode.
-     * When in simulation mode (useReal = false), these fields are disabled and greyed out.
+     *
+     * Dark-theme colour strategy:
+     *   Simulation (disabled) — fields disabled, text #6B7280 (clearly readable dim grey)
+     *   Real Sensor (enabled) — fields enabled, text #E5E7EB (bright near-white, clearly readable)
      */
     private void updateRealSensorFieldsState(boolean useReal) {
-        // Serial port and baud rate fields
+
+        // ── Active colours (Real Sensor mode) ────────────────────────────────
+        final String LABEL_ACTIVE      = "-fx-text-fill: #E5E7EB; -fx-font-size: 11px; -fx-font-weight: bold;";
+        final String DESC_PRIMARY_ACTIVE = "-fx-font-size: 11px; -fx-text-fill: #CBD5E1;";
+        final String DESC_SECONDARY_ACTIVE = "-fx-font-size: 11px; -fx-text-fill: #94A3B8;";
+        final String RADIO_ACTIVE      = "-fx-font-size: 12px; -fx-font-weight: bold; -fx-text-fill: #E5E7EB;";
+
+        // ── Greyed-out colours (Simulation mode) ─────────────────────────────
+        final String LABEL_DIM         = "-fx-text-fill: #4B5563; -fx-font-size: 11px; -fx-font-weight: bold;";
+        final String DESC_PRIMARY_DIM  = "-fx-font-size: 11px; -fx-text-fill: #4B5563;";
+        final String DESC_SECONDARY_DIM = "-fx-font-size: 11px; -fx-text-fill: #374151;";
+        final String RADIO_DIM         = "-fx-font-size: 12px; -fx-font-weight: bold; -fx-text-fill: #4B5563;";
+
+        // Enable/disable interactive controls
+        dht22Radio.setDisable(!useReal);
+        dht11Radio.setDisable(!useReal);
         serialPortField.setDisable(!useReal);
         baudRateField.setDisable(!useReal);
 
-        // DHT sensor type controls
-        dht22Radio.setDisable(!useReal);
-        dht11Radio.setDisable(!useReal);
-
         if (useReal) {
-            // Real mode: enable fields with normal text color
-            serialPortLabel.setStyle("-fx-font-weight: bold; -fx-font-size: 12; -fx-text-fill: #333;");
-            baudRateLabel.setStyle("-fx-font-weight: bold; -fx-font-size: 12; -fx-text-fill: #333;");
-            serialPortField.setStyle("-fx-padding: 10; -fx-font-size: 11; -fx-text-fill: #333;");
-            baudRateField.setStyle("-fx-padding: 10; -fx-font-size: 11; -fx-text-fill: #333;");
+            serialPortLabel.setStyle(LABEL_ACTIVE);
+            baudRateLabel.setStyle(LABEL_ACTIVE);
+            dht22Radio.setStyle(RADIO_ACTIVE);
+            dht11Radio.setStyle(RADIO_ACTIVE);
 
-            // DHT sensor type
-            dht22Radio.setStyle("-fx-font-size: 12; -fx-font-weight: bold; -fx-text-fill: #333;");
-            dht11Radio.setStyle("-fx-font-size: 12; -fx-font-weight: bold; -fx-text-fill: #333;");
-            for (javafx.scene.Node node : dht22DescriptionBox.getChildren()) {
-                ((javafx.scene.control.Label) node).setStyle("-fx-font-size: 11; -fx-text-fill: #555;");
+            if (dht22DescriptionBox.getChildren().size() >= 2) {
+                ((Label) dht22DescriptionBox.getChildren().get(0)).setStyle(DESC_PRIMARY_ACTIVE);
+                ((Label) dht22DescriptionBox.getChildren().get(1)).setStyle(DESC_SECONDARY_ACTIVE);
             }
-            for (javafx.scene.Node node : dht11DescriptionBox.getChildren()) {
-                ((javafx.scene.control.Label) node).setStyle("-fx-font-size: 11; -fx-text-fill: #555;");
+            if (dht11DescriptionBox.getChildren().size() >= 2) {
+                ((Label) dht11DescriptionBox.getChildren().get(0)).setStyle(DESC_PRIMARY_ACTIVE);
+                ((Label) dht11DescriptionBox.getChildren().get(1)).setStyle(DESC_SECONDARY_ACTIVE);
             }
         } else {
-            // Simulation mode: disable and grey out fields
-            serialPortLabel.setStyle("-fx-font-weight: bold; -fx-font-size: 12; -fx-text-fill: #bbb;");
-            baudRateLabel.setStyle("-fx-font-weight: bold; -fx-font-size: 12; -fx-text-fill: #bbb;");
-            serialPortField.setStyle("-fx-padding: 10; -fx-font-size: 11; -fx-text-fill: #999; -fx-control-inner-background: #f0f0f0;");
-            baudRateField.setStyle("-fx-padding: 10; -fx-font-size: 11; -fx-text-fill: #999; -fx-control-inner-background: #f0f0f0;");
+            serialPortLabel.setStyle(LABEL_DIM);
+            baudRateLabel.setStyle(LABEL_DIM);
+            dht22Radio.setStyle(RADIO_DIM);
+            dht11Radio.setStyle(RADIO_DIM);
 
-            // DHT sensor type
-            dht22Radio.setStyle("-fx-font-size: 12; -fx-font-weight: bold; -fx-text-fill: #ccc;");
-            dht11Radio.setStyle("-fx-font-size: 12; -fx-font-weight: bold; -fx-text-fill: #ccc;");
-            for (javafx.scene.Node node : dht22DescriptionBox.getChildren()) {
-                ((javafx.scene.control.Label) node).setStyle("-fx-font-size: 11; -fx-text-fill: #999;");
+            if (dht22DescriptionBox.getChildren().size() >= 2) {
+                ((Label) dht22DescriptionBox.getChildren().get(0)).setStyle(DESC_PRIMARY_DIM);
+                ((Label) dht22DescriptionBox.getChildren().get(1)).setStyle(DESC_SECONDARY_DIM);
             }
-            for (javafx.scene.Node node : dht11DescriptionBox.getChildren()) {
-                ((javafx.scene.control.Label) node).setStyle("-fx-font-size: 11; -fx-text-fill: #999;");
+            if (dht11DescriptionBox.getChildren().size() >= 2) {
+                ((Label) dht11DescriptionBox.getChildren().get(0)).setStyle(DESC_PRIMARY_DIM);
+                ((Label) dht11DescriptionBox.getChildren().get(1)).setStyle(DESC_SECONDARY_DIM);
             }
         }
     }

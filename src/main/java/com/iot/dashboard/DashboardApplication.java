@@ -93,7 +93,7 @@ public class DashboardApplication extends Application {
                 DashboardApplication.class.getResource("/com/iot/dashboard/firstrun.fxml"));
         javafx.scene.Parent root = loader.load();
 
-        javafx.scene.Scene scene = new javafx.scene.Scene(root, 480, 490);
+        javafx.scene.Scene scene = new javafx.scene.Scene(root, 480, 540);
         scene.getStylesheets().add(
                 DashboardApplication.class.getResource("/com/iot/dashboard/styles.css")
                         .toExternalForm());
@@ -101,6 +101,9 @@ public class DashboardApplication extends Application {
         primaryStage.setTitle("IoT Dashboard — First Time Setup");
         primaryStage.setScene(scene);
         primaryStage.setResizable(false);
+        primaryStage.setMaximized(false);
+        primaryStage.setMinWidth(460);
+        primaryStage.setMinHeight(460);
         primaryStage.centerOnScreen();
         primaryStage.show();
     }
@@ -114,7 +117,7 @@ public class DashboardApplication extends Application {
                 DashboardApplication.class.getResource("/com/iot/dashboard/login.fxml"));
         Parent root = loader.load();
 
-        Scene scene = new Scene(root, 520, 510);
+        Scene scene = new Scene(root, 520, 600);
         scene.getStylesheets().add(
                 DashboardApplication.class.getResource("/com/iot/dashboard/styles.css")
                         .toExternalForm());
@@ -122,7 +125,17 @@ public class DashboardApplication extends Application {
         primaryStage.setTitle("IoT Smart Energy Dashboard — Login");
         primaryStage.setScene(scene);
         primaryStage.setResizable(false);
-        primaryStage.centerOnScreen();
+
+        // setMaximized(false) is ignored if called at the same time as setScene()
+        // because JavaFX batches stage property changes. Un-maximize first on the
+        // current pulse, then center on the next pulse once the window has resized.
+        primaryStage.setMaximized(false);
+        Platform.runLater(() -> {
+            primaryStage.setWidth(520);
+            primaryStage.setHeight(600);
+            primaryStage.centerOnScreen();
+        });
+
         primaryStage.show();
     }
 

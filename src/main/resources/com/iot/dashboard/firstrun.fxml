@@ -12,7 +12,7 @@
 <BorderPane xmlns="http://javafx.com/javafx"
             xmlns:fx="http://javafx.com/fxml"
             fx:controller="com.iot.dashboard.controller.FirstRunController"
-            prefWidth="480" prefHeight="490"
+            prefWidth="480" prefHeight="540"
             styleClass="panel-root">
 
     <!-- ── HEADER ─────────────────────────────────────────── -->
@@ -73,7 +73,9 @@
 
     <!-- ── FOOTER ─────────────────────────────────────────── -->
     <bottom>
-        <VBox styleClass="panel-footer" spacing="10">
+        <VBox styleClass="panel-footer" spacing="8">
+            <Label text="Credentials are saved to your user profile — never stored in source code."
+                   styleClass="panel-status-dim" />
             <HBox spacing="10" alignment="CENTER_RIGHT">
                 <Button fx:id="exitButton" text="Exit"
                         styleClass="exit-btn" />
@@ -81,8 +83,6 @@
                         styleClass="btn-accent"
                         defaultButton="true" />
             </HBox>
-            <Label text="Credentials are saved to your user profile — never stored in source code."
-                   styleClass="panel-status-dim" />
         </VBox>
     </bottom>
 
