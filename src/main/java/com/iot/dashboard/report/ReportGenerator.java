@@ -6,6 +6,7 @@ import java.time.format.DateTimeFormatter;
 import java.util.DoubleSummaryStatistics;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
@@ -68,9 +69,12 @@ public class ReportGenerator {
      */
     public static void generatePdfReport(String outputPath,
                                          LocalDateTime from,
-                                         LocalDateTime to) throws IOException {
+                                         LocalDateTime to,
+                                         Set<SensorType> selectedSensors) throws IOException {
 
-        LOGGER.info("Generating PDF report: " + outputPath);
+        LOGGER.info("Generating PDF report: " + outputPath
+                + " | sensors: " + selectedSensors
+                + " | from: " + from + " to: " + to);
 
         // 1. Retrieve data from MySQL via JDBC
         List<SensorData> readings = DatabaseManager.getInstance().getReadingsByTimeRange(from, to);
@@ -88,9 +92,9 @@ public class ReportGenerator {
         PdfFont monoFont    = PdfFontFactory.createFont(StandardFonts.COURIER);
 
         // 3. Build report sections
-        addReportHeader (document, boldFont, regularFont, from, to);
-        addSummaryStats (document, boldFont, regularFont, readings);
-        addDetailTables (document, boldFont, regularFont, monoFont, readings);
+        addReportHeader (document, boldFont, regularFont, from, to, selectedSensors);
+        addSummaryStats (document, boldFont, regularFont, readings, selectedSensors);
+        addDetailTables (document, boldFont, regularFont, monoFont, readings, selectedSensors);
         addFooter       (document, regularFont);
 
         // 4. Close streams — finalises all PDF byte encoding
@@ -102,7 +106,8 @@ public class ReportGenerator {
     // Header Section
     // =====================================================================
     private static void addReportHeader(Document doc, PdfFont bold, PdfFont regular,
-                                        LocalDateTime from, LocalDateTime to) {
+                                        LocalDateTime from, LocalDateTime to,
+                                        Set<SensorType> selectedSensors) {
         // Title banner
         Table headerTable = new Table(UnitValue.createPercentArray(new float[]{1}))
                 .useAllAvailableWidth()
@@ -130,6 +135,10 @@ public class ReportGenerator {
                 from.format(HDR_FMT));
         addMetaRow(metaTable, bold, regular, "Time Range (To):",
                 to.format(HDR_FMT));
+        addMetaRow(metaTable, bold, regular, "Sensors Included:",
+                selectedSensors.stream()
+                        .map(SensorType::getMeasurement)
+                        .collect(java.util.stream.Collectors.joining(", ")));
         addMetaRow(metaTable, bold, regular, "System:",
                 "Java IoT Energy Dashboard v1.0");
 
@@ -151,7 +160,8 @@ public class ReportGenerator {
     // Summary Statistics Section
     // =====================================================================
     private static void addSummaryStats(Document doc, PdfFont bold, PdfFont regular,
-                                        List<SensorData> readings) {
+                                        List<SensorData> readings,
+                                        Set<SensorType> selectedSensors) {
         doc.add(new Paragraph("Summary Statistics")
                 .setFont(bold).setFontSize(14).setFontColor(TEXT_DARK)
                 .setBorderBottom(new SolidBorder(ACCENT_BLUE, 2))
@@ -187,6 +197,7 @@ public class ReportGenerator {
         // Data rows
         boolean even = false;
         for (SensorType type : SensorType.values()) {
+            if (!selectedSensors.contains(type)) continue;   // skip unselected
             List<SensorData> typeReadings = grouped.getOrDefault(type.getTypeId(), List.of());
             if (typeReadings.isEmpty()) continue;
 
@@ -213,12 +224,14 @@ public class ReportGenerator {
     // Detail Tables Section (one per sensor type)
     // =====================================================================
     private static void addDetailTables(Document doc, PdfFont bold, PdfFont regular,
-                                        PdfFont mono, List<SensorData> readings) {
+                                        PdfFont mono, List<SensorData> readings,
+                                        Set<SensorType> selectedSensors) {
 
         Map<Integer, List<SensorData>> grouped = readings.stream()
                 .collect(Collectors.groupingBy(SensorData::getTypeId));
 
         for (SensorType type : SensorType.values()) {
+            if (!selectedSensors.contains(type)) continue;   // skip unselected
             List<SensorData> typeReadings = grouped.getOrDefault(type.getTypeId(), List.of());
             if (typeReadings.isEmpty()) continue;
 

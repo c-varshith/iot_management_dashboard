@@ -1,0 +1,92 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.*?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<BorderPane xmlns="http://javafx.com/javafx"
+            xmlns:fx="http://javafx.com/fxml"
+            fx:controller="com.iot.dashboard.report.ReportOptionsController"
+            prefWidth="460" prefHeight="600"
+            styleClass="panel-root">
+
+    <!-- HEADER -->
+    <top>
+        <VBox styleClass="panel-header" spacing="4">
+            <Label text="Generate Report" styleClass="panel-title"/>
+            <Label text="Choose which sensors and time range to include"
+                   styleClass="panel-subtitle"/>
+        </VBox>
+    </top>
+
+    <!-- BODY -->
+    <center>
+        <ScrollPane fitToWidth="true"
+                    style="-fx-border-color: transparent; -fx-background-color: transparent;
+                           -fx-background: transparent;">
+            <VBox styleClass="panel-body" spacing="16">
+
+                <!-- Sensor Selection -->
+                <TitledPane text="Sensor Data to Include" collapsible="false"
+                            style="-fx-padding: 0;">
+                    <VBox spacing="12" style="-fx-padding: 14 16 14 16;">
+
+                        <!-- Select/Deselect All row -->
+                        <HBox spacing="8" alignment="CENTER_LEFT">
+                            <Button fx:id="selectAllBtn"   text="Select All"
+                                    styleClass="btn-secondary"
+                                    style="-fx-padding: 4 14; -fx-font-size: 11px;"/>
+                            <Button fx:id="deselectAllBtn" text="Deselect All"
+                                    styleClass="btn-secondary"
+                                    style="-fx-padding: 4 14; -fx-font-size: 11px;"/>
+                        </HBox>
+
+                        <!-- Checkboxes -->
+                        <CheckBox fx:id="cbTemperature" text="Temperature  (°C)"
+                                  selected="true"
+                                  style="-fx-font-size: 13px; -fx-text-fill: #E8EFF8; -fx-cursor: hand;"/>
+                        <CheckBox fx:id="cbHumidity"    text="Humidity  (%)"
+                                  selected="true"
+                                  style="-fx-font-size: 13px; -fx-text-fill: #E8EFF8; -fx-cursor: hand;"/>
+                        <CheckBox fx:id="cbVoltage"     text="Voltage  (V)"
+                                  selected="true"
+                                  style="-fx-font-size: 13px; -fx-text-fill: #E8EFF8; -fx-cursor: hand;"/>
+                        <CheckBox fx:id="cbActivePower" text="Active Power  (W)"
+                                  selected="true"
+                                  style="-fx-font-size: 13px; -fx-text-fill: #E8EFF8; -fx-cursor: hand;"/>
+                    </VBox>
+                </TitledPane>
+
+                <!-- Time Range -->
+                <TitledPane text="Time Range" collapsible="false">
+                    <VBox spacing="12" style="-fx-padding: 14 16 14 16;">
+                        <RadioButton fx:id="r1h"  text="Last 1 hour"
+                                     selected="true"
+                                     style="-fx-font-size: 13px; -fx-text-fill: #E8EFF8; -fx-cursor: hand;"/>
+                        <RadioButton fx:id="r6h"  text="Last 6 hours"
+                                     style="-fx-font-size: 13px; -fx-text-fill: #E8EFF8; -fx-cursor: hand;"/>
+                        <RadioButton fx:id="r24h" text="Last 24 hours"
+                                     style="-fx-font-size: 13px; -fx-text-fill: #E8EFF8; -fx-cursor: hand;"/>
+                        <RadioButton fx:id="rAll" text="All data"
+                                     style="-fx-font-size: 13px; -fx-text-fill: #E8EFF8; -fx-cursor: hand;"/>
+                    </VBox>
+                </TitledPane>
+
+                <!-- Validation message -->
+                <Label fx:id="validationLabel" text="" wrapText="true"
+                       styleClass="panel-status-err"/>
+
+            </VBox>
+        </ScrollPane>
+    </center>
+
+    <!-- FOOTER -->
+    <bottom>
+        <HBox styleClass="panel-footer" spacing="12" alignment="CENTER_RIGHT">
+            <Button fx:id="cancelBtn"   text="Cancel"              styleClass="exit-btn"/>
+            <Button fx:id="generateBtn" text="Generate Report"     styleClass="btn-accent"
+                    defaultButton="true"/>
+        </HBox>
+    </bottom>
+
+</BorderPane>

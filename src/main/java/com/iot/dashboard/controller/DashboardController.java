@@ -5,6 +5,7 @@ import com.iot.dashboard.database.DatabaseManager;
 import com.iot.dashboard.model.SensorData;
 import com.iot.dashboard.model.SensorType;
 import com.iot.dashboard.report.ReportGenerator;
+import com.iot.dashboard.report.ReportOptionsDialog;
 import com.iot.dashboard.simulation.RealSensorReader;
 import com.iot.dashboard.simulation.SensorSimulator;
 import com.iot.dashboard.util.AlertUtil;
@@ -299,6 +300,22 @@ public class DashboardController implements Initializable {
     // Data reception
     // =========================================================================
     private void onSensorDataReceived(SensorData data) {
+        // Persist to database — this covers readings from RealSensorReader
+        // (temperature + humidity in real mode) which are NOT inserted by
+        // SensorSimulator (the simulator skips excluded types).
+        // SensorSimulator already calls insertSensorData() itself, so we only
+        // insert here for types that come from the real sensor reader.
+        ConfigManager config = ConfigManager.getInstance();
+        if (config.isUseRealSensor()) {
+            int typeId = data.getTypeId();
+            // In real sensor mode, simulator handles VOLTAGE(3) and POWER(4).
+            // RealSensorReader produces TEMPERATURE(1) and HUMIDITY(2) — insert those here.
+            if (typeId == SensorType.TEMPERATURE.getTypeId() ||
+                typeId == SensorType.HUMIDITY.getTypeId()) {
+                DatabaseManager.getInstance().insertSensorData(data);
+            }
+        }
+
         Platform.runLater(() -> {
             updateChart(data);
             updateCurrentValueLabel(data);
@@ -427,6 +444,12 @@ public class DashboardController implements Initializable {
 
     @FXML
     private void handleGenerateReport(ActionEvent event) {
+        // Step 1 — show sensor + time range selection dialog
+        ReportOptionsDialog.ReportOptions options =
+                new ReportOptionsDialog().show(reportButton.getScene().getWindow());
+        if (options == null) return; // user cancelled
+
+        // Step 2 — file chooser
         FileChooser fileChooser = new FileChooser();
         fileChooser.setTitle("Save IoT Energy Report");
         fileChooser.setInitialFileName("iot_energy_report_"
@@ -443,9 +466,11 @@ public class DashboardController implements Initializable {
 
         Thread reportThread = new Thread(() -> {
             try {
-                LocalDateTime from = LocalDateTime.now().minusHours(1);
-                LocalDateTime to   = LocalDateTime.now();
-                ReportGenerator.generatePdfReport(selectedFile.getAbsolutePath(), from, to);
+                ReportGenerator.generatePdfReport(
+                        selectedFile.getAbsolutePath(),
+                        options.from,
+                        options.to,
+                        options.selectedSensors);
 
                 Platform.runLater(() -> {
                     reportButton.setDisable(false);
