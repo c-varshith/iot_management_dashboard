@@ -664,7 +664,7 @@
     -fx-border-radius: 9;
     -fx-background-radius: 9;
     -fx-text-fill: #E8EFF8;
-    -fx-prompt-text-fill: #3A4A5C;
+    -fx-prompt-text-fill: #8895A7;
     -fx-padding: 11 14;
     -fx-font-size: 13px;
 }
@@ -673,6 +673,14 @@
     -fx-border-color: #00C8E8;
     -fx-background-color: #1A2535;
     -fx-effect: dropshadow(gaussian, rgba(0,200,232,0.22), 10, 0, 0, 0);
+}
+
+.panel-field:disabled {
+    -fx-opacity: 1;
+    -fx-background-color: #141C28;
+    -fx-border-color: #1A2535;
+    -fx-text-fill: #4A5568;
+    -fx-prompt-text-fill: #4A5568;
 }
 
 .panel-field-mono {
