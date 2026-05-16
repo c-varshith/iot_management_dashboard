@@ -93,7 +93,7 @@ public class DashboardApplication extends Application {
                 DashboardApplication.class.getResource("/com/iot/dashboard/firstrun.fxml"));
         javafx.scene.Parent root = loader.load();
 
-        javafx.scene.Scene scene = new javafx.scene.Scene(root, 480, 420);
+        javafx.scene.Scene scene = new javafx.scene.Scene(root, 480, 490);
         scene.getStylesheets().add(
                 DashboardApplication.class.getResource("/com/iot/dashboard/styles.css")
                         .toExternalForm());
