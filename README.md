@@ -25,6 +25,10 @@ src="https://img.shields.io/badge/Sensor%20Modes-Real%20%2B%20Simulation-FF6B35?
 </p>
 
 <p align="center">
+   This repository now includes a LICENSE file (MIT). See <a href="/LICENSE">LICENSE</a> for details.
+</p>
+
+<p align="center">
    <a href="#features">Features</a> &bull;
    <a href="#sensor-modes">Sensor Modes</a> &bull;
    <a href="#running-locally">Setup</a> &bull;
