@@ -415,7 +415,7 @@
 
 .panel-status-ok  { -fx-text-fill: #276749; -fx-font-size: 12px; -fx-font-weight: bold; }
 .panel-status-err { -fx-text-fill: #C53030; -fx-font-size: 11px; }
-.panel-status-dim { -fx-text-fill: #718096; -fx-font-size: 10px; -fx-font-style: italic; }
+.panel-status-dim { -fx-text-fill: #2D3748; -fx-font-size: 11px; -fx-font-style: italic; }
 .panel-warning    { -fx-text-fill: #B7791F; -fx-font-size: 11px; -fx-font-style: italic; }
 
 /* TitledPane in light mode */

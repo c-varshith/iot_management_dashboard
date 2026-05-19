@@ -105,8 +105,9 @@ public class DashboardApplication extends Application {
         javafx.scene.Parent root = loader.load();
 
         javafx.scene.Scene scene = new javafx.scene.Scene(root, 480, 540);
-        String firstRunCss = resolveThemeCss();
-        if (firstRunCss != null) scene.getStylesheets().add(firstRunCss);
+        // Always light theme — this runs before any user preference is saved
+        java.net.URL firstRunCssUrl = DashboardApplication.class.getResource("/com/iot/dashboard/styles-light.css");
+        if (firstRunCssUrl != null) scene.getStylesheets().add(firstRunCssUrl.toExternalForm());
 
         primaryStage.setTitle("IoT Dashboard — First Time Setup");
         primaryStage.setScene(scene);

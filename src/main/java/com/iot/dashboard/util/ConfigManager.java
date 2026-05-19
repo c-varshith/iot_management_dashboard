@@ -304,7 +304,7 @@ public class ConfigManager {
     // =========================================================================
 
     public boolean isLightTheme() {
-        return "light".equalsIgnoreCase(properties.getProperty("ui.theme", "dark"));
+        return "light".equalsIgnoreCase(properties.getProperty("ui.theme", "light"));
     }
 
     public void setLightTheme(boolean light) {
