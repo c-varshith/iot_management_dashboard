@@ -56,6 +56,10 @@
             <!-- Spacer — pushes Settings and Logout to the far right -->
             <Region HBox.hgrow="ALWAYS" />
 
+            <Button fx:id="themeToggleButton"
+                    text="☀ Light"
+                    onAction="#handleThemeToggle"
+                    styleClass="btn-secondary" />
             <Button fx:id="settingsButton"
                     text="⚙ Settings"
                     onAction="#handleSettings"

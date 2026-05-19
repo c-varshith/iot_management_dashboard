@@ -149,17 +149,35 @@ public class SettingsController implements Initializable {
      */
     private void updateRealSensorFieldsState(boolean useReal) {
 
-        // ── Active colours (Real Sensor mode) ────────────────────────────────
-        final String LABEL_ACTIVE      = "-fx-text-fill: #E5E7EB; -fx-font-size: 11px; -fx-font-weight: bold;";
-        final String DESC_PRIMARY_ACTIVE = "-fx-font-size: 11px; -fx-text-fill: #CBD5E1;";
-        final String DESC_SECONDARY_ACTIVE = "-fx-font-size: 11px; -fx-text-fill: #94A3B8;";
-        final String RADIO_ACTIVE      = "-fx-font-size: 12px; -fx-font-weight: bold; -fx-text-fill: #E5E7EB;";
+        boolean light = ConfigManager.getInstance().isLightTheme();
 
-        // ── Greyed-out colours (Simulation mode) ─────────────────────────────
-        final String LABEL_DIM         = "-fx-text-fill: #4B5563; -fx-font-size: 11px; -fx-font-weight: bold;";
-        final String DESC_PRIMARY_DIM  = "-fx-font-size: 11px; -fx-text-fill: #4B5563;";
-        final String DESC_SECONDARY_DIM = "-fx-font-size: 11px; -fx-text-fill: #374151;";
-        final String RADIO_DIM         = "-fx-font-size: 12px; -fx-font-weight: bold; -fx-text-fill: #4B5563;";
+        // ── Active colours (Real Sensor mode) — theme-aware ──────────────────
+        final String LABEL_ACTIVE = light
+                ? "-fx-text-fill: #1A202C; -fx-font-size: 11px; -fx-font-weight: bold;"
+                : "-fx-text-fill: #E5E7EB; -fx-font-size: 11px; -fx-font-weight: bold;";
+        final String DESC_PRIMARY_ACTIVE = light
+                ? "-fx-font-size: 11px; -fx-text-fill: #2D3748;"
+                : "-fx-font-size: 11px; -fx-text-fill: #CBD5E1;";
+        final String DESC_SECONDARY_ACTIVE = light
+                ? "-fx-font-size: 11px; -fx-text-fill: #4A5568;"
+                : "-fx-font-size: 11px; -fx-text-fill: #94A3B8;";
+        final String RADIO_ACTIVE = light
+                ? "-fx-font-size: 12px; -fx-font-weight: bold; -fx-text-fill: #1A202C;"
+                : "-fx-font-size: 12px; -fx-font-weight: bold; -fx-text-fill: #E5E7EB;";
+
+        // ── Greyed-out colours (Simulation mode) — theme-aware ───────────────
+        final String LABEL_DIM = light
+                ? "-fx-text-fill: #A0AEC0; -fx-font-size: 11px; -fx-font-weight: bold;"
+                : "-fx-text-fill: #4B5563; -fx-font-size: 11px; -fx-font-weight: bold;";
+        final String DESC_PRIMARY_DIM = light
+                ? "-fx-font-size: 11px; -fx-text-fill: #A0AEC0;"
+                : "-fx-font-size: 11px; -fx-text-fill: #4B5563;";
+        final String DESC_SECONDARY_DIM = light
+                ? "-fx-font-size: 11px; -fx-text-fill: #CBD5E0;"
+                : "-fx-font-size: 11px; -fx-text-fill: #374151;";
+        final String RADIO_DIM = light
+                ? "-fx-font-size: 12px; -fx-font-weight: bold; -fx-text-fill: #A0AEC0;"
+                : "-fx-font-size: 12px; -fx-font-weight: bold; -fx-text-fill: #4B5563;";
 
         // Enable/disable interactive controls
         dht22Radio.setDisable(!useReal);

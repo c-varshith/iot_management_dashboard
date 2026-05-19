@@ -35,7 +35,7 @@ public class ReportOptionsDialog {
         }
     }
 
-    public ReportOptions show(Window owner) {
+    public ReportOptions show(Window owner, String cssUrl) {
         try {
             FXMLLoader loader = new FXMLLoader(
                     getClass().getResource("/com/iot/dashboard/reportoptions.fxml"));
@@ -44,9 +44,15 @@ public class ReportOptionsDialog {
             ReportOptionsController controller = loader.getController();
 
             Scene scene = new Scene(root, 460, 600);
-            // Apply the same stylesheet as the rest of the app
-            scene.getStylesheets().add(
-                    getClass().getResource("/com/iot/dashboard/styles.css").toExternalForm());
+            // Apply the current theme stylesheet
+            if (cssUrl != null) {
+                scene.getStylesheets().add(cssUrl);
+            } else {
+                String fallback = getClass().getResource("/com/iot/dashboard/styles.css") != null
+                        ? getClass().getResource("/com/iot/dashboard/styles.css").toExternalForm()
+                        : null;
+                if (fallback != null) scene.getStylesheets().add(fallback);
+            }
 
             Stage dialog = new Stage();
             dialog.initModality(Modality.WINDOW_MODAL);

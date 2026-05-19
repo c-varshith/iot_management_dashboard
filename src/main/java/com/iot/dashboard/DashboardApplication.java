@@ -84,6 +84,17 @@ public class DashboardApplication extends Application {
         }
     }
 
+
+    /** Returns the CSS resource URL for the saved theme (light or dark). */
+    private static String resolveThemeCss() {
+        boolean light = ConfigManager.getInstance().isLightTheme();
+        String path = light
+                ? "/com/iot/dashboard/styles-light.css"
+                : "/com/iot/dashboard/styles.css";
+        java.net.URL url = DashboardApplication.class.getResource(path);
+        return url != null ? url.toExternalForm() : null;
+    }
+
     /**
      * Shows the first-run setup dialog where the user enters DB credentials.
      * After saving, the wizard transitions directly to the login screen.
@@ -94,9 +105,8 @@ public class DashboardApplication extends Application {
         javafx.scene.Parent root = loader.load();
 
         javafx.scene.Scene scene = new javafx.scene.Scene(root, 480, 540);
-        scene.getStylesheets().add(
-                DashboardApplication.class.getResource("/com/iot/dashboard/styles.css")
-                        .toExternalForm());
+        String firstRunCss = resolveThemeCss();
+        if (firstRunCss != null) scene.getStylesheets().add(firstRunCss);
 
         primaryStage.setTitle("IoT Dashboard — First Time Setup");
         primaryStage.setScene(scene);
@@ -118,9 +128,8 @@ public class DashboardApplication extends Application {
         Parent root = loader.load();
 
         Scene scene = new Scene(root, 520, 600);
-        scene.getStylesheets().add(
-                DashboardApplication.class.getResource("/com/iot/dashboard/styles.css")
-                        .toExternalForm());
+        String loginCss = resolveThemeCss();
+        if (loginCss != null) scene.getStylesheets().add(loginCss);
 
         primaryStage.setTitle("IoT Smart Energy Dashboard — Login");
         primaryStage.setScene(scene);
@@ -149,9 +158,8 @@ public class DashboardApplication extends Application {
         Parent root = loader.load();
 
         Scene scene = new Scene(root, 1400, 900);
-        scene.getStylesheets().add(
-                DashboardApplication.class.getResource("/com/iot/dashboard/styles.css")
-                        .toExternalForm());
+        String dashCss = resolveThemeCss();
+        if (dashCss != null) scene.getStylesheets().add(dashCss);
 
         primaryStage.setTitle("IoT Smart Energy Management Dashboard");
         primaryStage.setScene(scene);

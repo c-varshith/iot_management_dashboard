@@ -759,3 +759,16 @@
     -fx-border-color: rgba(34,217,138,0.45);
     -fx-text-fill: #22D98A;
 }
+
+/* ─── DHT SENSOR OPTION CARDS (Settings) ─────────────────── */
+.dht-option-card {
+    -fx-background-color: #161D27;
+    -fx-background-radius: 8;
+    -fx-padding: 12;
+    -fx-border-color: #1F2B3A;
+    -fx-border-radius: 8;
+    -fx-border-width: 1;
+}
+
+.dht-card-label-primary   { -fx-font-size: 11px; -fx-text-fill: #8895A7; }
+.dht-card-label-secondary { -fx-font-size: 11px; -fx-text-fill: #4A5568; }

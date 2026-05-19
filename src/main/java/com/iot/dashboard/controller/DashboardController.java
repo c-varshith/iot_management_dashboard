@@ -85,8 +85,15 @@ public class DashboardController implements Initializable {
     @FXML private Label   alertCountLabel;      // NEW — shows active alert count
     @FXML private Button  startStopButton;
     @FXML private Button  reportButton;
+    @FXML private Button  themeToggleButton;
     @FXML private Button  settingsButton;
     @FXML private Button  logoutButton;
+
+    // Track current theme (initialised from saved config in initialize())
+    private boolean isLightTheme = false;
+
+    private static final String DARK_CSS  = "/com/iot/dashboard/styles.css";
+    private static final String LIGHT_CSS = "/com/iot/dashboard/styles-light.css";
 
     @FXML private LineChart<Number, Number> tempChart;
     @FXML private LineChart<Number, Number> humidChart;
@@ -129,6 +136,18 @@ public class DashboardController implements Initializable {
     // =========================================================================
     @Override
     public void initialize(URL url, ResourceBundle resourceBundle) {
+        // Restore saved theme before drawing anything
+        isLightTheme = ConfigManager.getInstance().isLightTheme();
+        // Scene isn't attached yet at initialize() time; apply on next pulse
+        javafx.application.Platform.runLater(() -> {
+            javafx.scene.Scene scene = themeToggleButton.getScene();
+            if (scene != null) {
+                scene.getStylesheets().clear();
+                scene.getStylesheets().add(
+                        getClass().getResource(isLightTheme ? LIGHT_CSS : DARK_CSS).toExternalForm());
+            }
+            themeToggleButton.setText(isLightTheme ? "🌙 Dark" : "☀ Light");
+        });
         setupCharts();
         setupTable();
         setupCurrentValueLabels();
@@ -380,6 +399,29 @@ public class DashboardController implements Initializable {
     }
 
     @FXML
+    private void handleThemeToggle(ActionEvent event) {
+        isLightTheme = !isLightTheme;
+
+        javafx.scene.Scene scene = themeToggleButton.getScene();
+        scene.getStylesheets().clear();
+
+        String css = isLightTheme ? LIGHT_CSS : DARK_CSS;
+        scene.getStylesheets().add(getClass().getResource(css).toExternalForm());
+
+        themeToggleButton.setText(isLightTheme ? "🌙 Dark" : "☀ Light");
+        updateStatus(isLightTheme ? "Light theme applied." : "Dark theme applied.");
+
+        // Persist theme preference so login screen and next launch use it too
+        ConfigManager config = ConfigManager.getInstance();
+        config.setLightTheme(isLightTheme);
+        try {
+            config.saveConfig();
+        } catch (Exception e) {
+            LOGGER.warning("Could not save theme preference: " + e.getMessage());
+        }
+    }
+
+    @FXML
     private void handleSettings(ActionEvent event) {
         try {
             FXMLLoader loader = new FXMLLoader(
@@ -392,8 +434,9 @@ public class DashboardController implements Initializable {
             Stage settingsStage = new Stage();
             settingsStage.setTitle("Application Settings");
             Scene settingsScene = new Scene(root, 500, 620);
-            String css = DashboardApplication.class.getResource("/com/iot/dashboard/styles.css") != null
-                    ? DashboardApplication.class.getResource("/com/iot/dashboard/styles.css").toExternalForm()
+            String cssPath = isLightTheme ? LIGHT_CSS : DARK_CSS;
+            String css = DashboardApplication.class.getResource(cssPath) != null
+                    ? DashboardApplication.class.getResource(cssPath).toExternalForm()
                     : null;
             if (css != null) settingsScene.getStylesheets().add(css);
             settingsStage.setScene(settingsScene);
@@ -445,8 +488,11 @@ public class DashboardController implements Initializable {
     @FXML
     private void handleGenerateReport(ActionEvent event) {
         // Step 1 — show sensor + time range selection dialog
+        String themeCss = getClass().getResource(isLightTheme ? LIGHT_CSS : DARK_CSS) != null
+                ? getClass().getResource(isLightTheme ? LIGHT_CSS : DARK_CSS).toExternalForm()
+                : null;
         ReportOptionsDialog.ReportOptions options =
-                new ReportOptionsDialog().show(reportButton.getScene().getWindow());
+                new ReportOptionsDialog().show(reportButton.getScene().getWindow(), themeCss);
         if (options == null) return; // user cancelled
 
         // Step 2 — file chooser

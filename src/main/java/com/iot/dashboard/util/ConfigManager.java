@@ -298,6 +298,19 @@ public class ConfigManager {
         }
     }
 
+
+    // =========================================================================
+    // UI Theme
+    // =========================================================================
+
+    public boolean isLightTheme() {
+        return "light".equalsIgnoreCase(properties.getProperty("ui.theme", "dark"));
+    }
+
+    public void setLightTheme(boolean light) {
+        properties.setProperty("ui.theme", light ? "light" : "dark");
+    }
+
     // =========================================================================
     // Utility
     // =========================================================================
